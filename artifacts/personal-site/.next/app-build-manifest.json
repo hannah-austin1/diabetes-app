@@ -15,6 +15,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/diabetes/page.js"
+    ],
+    "/diabetes/weekly/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/diabetes/weekly/page.js"
     ]
   }
 }

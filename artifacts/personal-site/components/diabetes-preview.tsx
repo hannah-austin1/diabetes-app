@@ -1,19 +1,18 @@
 import Link from "next/link";
 import { fetchNightscoutData } from "@/lib/nightscout";
-import { glucoseColor, glucoseLabel, trendArrow, minutesAgo } from "@/lib/utils";
+import { glucoseColor, glucoseLabel, trendArrow, minutesAgo, fmtMmol } from "@/lib/utils";
 
 export async function DiabetesPreview() {
   const readings = await fetchNightscoutData(3);
   const latest = readings[0];
 
-  if (!latest) {
-    return null;
-  }
+  if (!latest) return null;
 
   const color = glucoseColor(latest.sgv);
   const label = glucoseLabel(latest.sgv);
   const arrow = trendArrow(latest.direction);
   const ago = minutesAgo(latest.date);
+  const mmol = fmtMmol(latest.sgv);
 
   return (
     <section>
@@ -25,25 +24,16 @@ export async function DiabetesPreview() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-baseline gap-3 mb-2">
-                <span
-                  className="text-6xl font-black font-mono"
-                  style={{ color }}
-                >
-                  {latest.sgv}
+                <span className="text-6xl font-black font-mono" style={{ color }}>
+                  {mmol}
                 </span>
-                <span className="text-3xl font-bold" style={{ color }}>
-                  {arrow}
-                </span>
-                <span className="text-sm text-gray-600 self-end mb-1">mg/dL</span>
+                <span className="text-3xl font-bold" style={{ color }}>{arrow}</span>
+                <span className="text-sm text-gray-600 self-end mb-1">mmol/L</span>
               </div>
               <div className="flex items-center gap-3">
                 <span
                   className="text-xs font-bold px-2 py-0.5 rounded-full font-mono"
-                  style={{
-                    color,
-                    backgroundColor: `${color}22`,
-                    border: `1px solid ${color}44`,
-                  }}
+                  style={{ color, backgroundColor: `${color}22`, border: `1px solid ${color}44` }}
                 >
                   {label}
                 </span>
@@ -58,7 +48,6 @@ export async function DiabetesPreview() {
             </div>
           </div>
 
-          {/* Mini sparkline from recent readings */}
           <div className="mt-6">
             <MiniSparkline readings={readings} />
           </div>
@@ -68,11 +57,7 @@ export async function DiabetesPreview() {
   );
 }
 
-function MiniSparkline({
-  readings,
-}: {
-  readings: Awaited<ReturnType<typeof fetchNightscoutData>>;
-}) {
+function MiniSparkline({ readings }: { readings: Awaited<ReturnType<typeof fetchNightscoutData>> }) {
   if (readings.length < 2) return null;
 
   const sorted = [...readings].sort((a, b) => a.date - b.date);
@@ -93,12 +78,7 @@ function MiniSparkline({
 
   return (
     <div className="relative">
-      <svg
-        viewBox={`0 0 ${w} ${h}`}
-        preserveAspectRatio="none"
-        className="w-full h-12"
-      >
-        {/* In-range band */}
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-12">
         <rect
           x={0}
           y={h - ((180 - min) / range) * h}
@@ -106,7 +86,6 @@ function MiniSparkline({
           height={((180 - 70) / range) * h}
           fill="rgba(34, 197, 94, 0.06)"
         />
-        {/* Line */}
         <polyline
           points={points}
           fill="none"

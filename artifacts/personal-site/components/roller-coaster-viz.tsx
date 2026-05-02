@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { NightscoutReading } from "@/lib/nightscout";
-import { glucoseColor } from "@/lib/utils";
+import { glucoseColor, fmtMmol } from "@/lib/utils";
 
-interface Props {
-  readings: NightscoutReading[];
-}
-
-const STARS = [
+// Fixed star positions — static to avoid hydration mismatch
+const STARS: { size: number; top: number; left: number; opacity: number }[] = [
   { size: 1, top: 5.2, left: 8.4, opacity: 0.3 },
   { size: 2, top: 12.1, left: 23.7, opacity: 0.4 },
   { size: 1, top: 3.8, left: 41.2, opacity: 0.2 },
@@ -51,15 +48,18 @@ const STARS = [
   { size: 1, top: 9.7, left: 77.3, opacity: 0.3 },
 ];
 
+interface Props {
+  readings: NightscoutReading[];
+}
+
 export function RollerCoasterViz({ readings }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const offsetRef = useRef(0);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const sorted = [...readings]
     .sort((a, b) => a.date - b.date)
-    .slice(-144); // last 12 hours
+    .slice(-144); // last 12 hours (~144 readings at 5-min intervals)
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,13 +68,10 @@ export function RollerCoasterViz({ readings }: Props) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    setIsLoaded(true);
-
     const W = canvas.width;
     const H = canvas.height;
-    const SPEED = 0.4; // px per frame
+    const SPEED = 0.4;
 
-    // BG zone thresholds (in canvas Y)
     const SGV_MIN = 40;
     const SGV_MAX = 320;
     const SGV_RANGE = SGV_MAX - SGV_MIN;
@@ -83,11 +80,10 @@ export function RollerCoasterViz({ readings }: Props) {
       return H - 60 - ((sgv - SGV_MIN) / SGV_RANGE) * (H - 120);
     }
 
-    // Build the full track path (doubled for seamless loop)
     const values = sorted.map((r) => r.sgv);
     const trackLength = W * 2;
 
-    function getTrackPoints(xOffset: number): { x: number; y: number; sgv: number }[] {
+    function getTrackPoints(xOffset: number) {
       const pts: { x: number; y: number; sgv: number }[] = [];
       const total = values.length;
       for (let i = 0; i < total * 2; i++) {
@@ -102,13 +98,6 @@ export function RollerCoasterViz({ readings }: Props) {
     function draw() {
       ctx!.clearRect(0, 0, W, H);
 
-      // Background gradient
-      const bgGrad = ctx!.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, "rgba(10, 10, 20, 0)");
-      bgGrad.addColorStop(1, "rgba(10, 10, 20, 0)");
-      ctx!.fillStyle = bgGrad;
-      ctx!.fillRect(0, 0, W, H);
-
       // Zone bands
       const lowY = sgvToY(70);
       const highY = sgvToY(180);
@@ -120,17 +109,15 @@ export function RollerCoasterViz({ readings }: Props) {
       // Zone labels
       ctx!.font = "10px monospace";
       ctx!.fillStyle = "rgba(34, 197, 94, 0.4)";
-      ctx!.fillText("▸ 180", W - 45, highY - 4);
+      ctx!.fillText("▸ 10.0", W - 52, highY - 4);
       ctx!.fillStyle = "rgba(249, 115, 22, 0.4)";
-      ctx!.fillText("▸ 70", W - 45, lowY + 12);
+      ctx!.fillText("▸ 3.9", W - 52, lowY + 12);
 
       // Horizontal grid lines
       [70, 100, 140, 180, 250].forEach((v) => {
         const y = sgvToY(v);
         ctx!.strokeStyle =
-          v === 70 || v === 180
-            ? "rgba(255,255,255,0.08)"
-            : "rgba(255,255,255,0.03)";
+          v === 70 || v === 180 ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)";
         ctx!.lineWidth = 1;
         ctx!.setLineDash([4, 8]);
         ctx!.beginPath();
@@ -142,12 +129,11 @@ export function RollerCoasterViz({ readings }: Props) {
 
       const pts = getTrackPoints(offsetRef.current % trackLength);
 
-      // Draw shadow/glow under track
+      // Filled area under curve
       ctx!.save();
       ctx!.shadowBlur = 18;
       ctx!.shadowColor = "rgba(79, 142, 247, 0.4)";
 
-      // Draw filled area under curve
       if (pts.length > 1) {
         ctx!.beginPath();
         ctx!.moveTo(pts[0].x, H);
@@ -161,7 +147,7 @@ export function RollerCoasterViz({ readings }: Props) {
         ctx!.fill();
       }
 
-      // Draw the colored track line (color changes by glucose value)
+      // Colored track line (color changes with glucose)
       if (pts.length > 1) {
         for (let i = 1; i < pts.length; i++) {
           const p0 = pts[i - 1];
@@ -181,7 +167,7 @@ export function RollerCoasterViz({ readings }: Props) {
       }
       ctx!.restore();
 
-      // Draw track rails (double line effect)
+      // Track rails
       if (pts.length > 1) {
         [-4, 4].forEach((offset) => {
           ctx!.beginPath();
@@ -195,7 +181,7 @@ export function RollerCoasterViz({ readings }: Props) {
         });
       }
 
-      // Draw support pillars
+      // Support pillars
       if (pts.length > 1) {
         for (let i = 0; i < pts.length; i += 8) {
           const p = pts[i];
@@ -211,21 +197,18 @@ export function RollerCoasterViz({ readings }: Props) {
         }
       }
 
-      // Draw the cart / coaster car
-      const carX = W * 0.2; // car is 20% from left
-      // Find closest track point to carX
-      let carPt = pts.find((p) => p.x >= carX) ?? pts[0];
-      let carNext = pts[pts.indexOf(carPt) + 1] ?? carPt;
-
-      // Angle of car
+      // Coaster car
+      const carX = W * 0.2;
+      const carPt = pts.find((p) => p.x >= carX) ?? pts[0];
+      const carNext = pts[pts.indexOf(carPt) + 1] ?? carPt;
       const angle = Math.atan2(carNext.y - carPt.y, carNext.x - carPt.x);
+      const carColor = glucoseColor(carPt.sgv);
 
       ctx!.save();
       ctx!.translate(carPt.x, carPt.y);
       ctx!.rotate(angle);
 
       // Car body
-      const carColor = glucoseColor(carPt.sgv);
       ctx!.shadowBlur = 20;
       ctx!.shadowColor = carColor;
       ctx!.fillStyle = carColor;
@@ -233,7 +216,7 @@ export function RollerCoasterViz({ readings }: Props) {
       ctx!.roundRect(-14, -14, 28, 16, 4);
       ctx!.fill();
 
-      // Car windows
+      // Windows
       ctx!.fillStyle = "rgba(0,0,0,0.5)";
       ctx!.fillRect(-9, -11, 7, 7);
       ctx!.fillRect(2, -11, 7, 7);
@@ -249,47 +232,43 @@ export function RollerCoasterViz({ readings }: Props) {
         ctx!.fill();
         ctx!.stroke();
       });
-
       ctx!.restore();
 
-      // Current glucose readout at car position
+      // mmol/L readout above car
+      const mmolStr = `${fmtMmol(carPt.sgv)} mmol/L`;
       ctx!.save();
-      ctx!.font = "bold 13px monospace";
-      ctx!.fillStyle = "rgba(0,0,0,0.7)";
-      const bgW = 64;
+      ctx!.font = "bold 12px monospace";
+      const textW = ctx!.measureText(mmolStr).width;
+      const bgW = textW + 16;
       const bgH = 22;
       const labelX = carPt.x - bgW / 2;
-      const labelY = carPt.y - 30;
+      const labelY = carPt.y - 32;
+      ctx!.fillStyle = "rgba(0,0,0,0.75)";
       ctx!.beginPath();
-      ctx!.roundRect(labelX, labelY - bgH + 4, bgW, bgH, 6);
+      ctx!.roundRect(labelX, labelY - bgH + 6, bgW, bgH, 6);
       ctx!.fill();
-      ctx!.fillStyle = glucoseColor(carPt.sgv);
+      ctx!.fillStyle = carColor;
       ctx!.textAlign = "center";
-      ctx!.fillText(`${Math.round(carPt.sgv)} mg/dL`, carPt.x, labelY);
+      ctx!.fillText(mmolStr, carPt.x, labelY);
       ctx!.restore();
 
-      // Advance the offset
+      // Advance offset
       offsetRef.current += SPEED;
-      if (offsetRef.current >= trackLength) {
-        offsetRef.current = 0;
-      }
+      if (offsetRef.current >= trackLength) offsetRef.current = 0;
 
       animFrameRef.current = requestAnimationFrame(draw);
     }
 
     animFrameRef.current = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(animFrameRef.current);
-    };
+    return () => cancelAnimationFrame(animFrameRef.current);
   }, [sorted]);
 
   return (
     <div className="relative card-glass p-2 border border-white/8 overflow-hidden">
-      {/* Sky gradient top */}
+      {/* Sky */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0d1117] to-transparent pointer-events-none z-0 opacity-60" />
 
-      {/* Stars — fixed positions to avoid hydration mismatch */}
+      {/* Stars */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {STARS.map((star, i) => (
           <div
@@ -311,23 +290,19 @@ export function RollerCoasterViz({ readings }: Props) {
         width={900}
         height={280}
         className="w-full rounded-xl relative z-10"
-        style={{ display: isLoaded ? "block" : "block" }}
       />
 
       {/* Legend */}
       <div className="flex items-center justify-center gap-6 mt-3 pb-2 relative z-10">
         {[
-          { color: "#22c55e", label: "In Range (70–180)" },
-          { color: "#eab308", label: "High (180+)" },
-          { color: "#f97316", label: "Low (<70)" },
+          { color: "#22c55e", label: "In Range (3.9–10.0)" },
+          { color: "#eab308", label: "High (>10.0)" },
+          { color: "#f97316", label: "Low (<3.9)" },
           { color: "#ef4444", label: "Critical" },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-2 text-xs text-gray-600">
-            <div
-              className="w-3 h-1.5 rounded-full"
-              style={{ backgroundColor: item.color }}
-            />
-            {item.label}
+            <div className="w-3 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+            {item.label} mmol/L
           </div>
         ))}
       </div>
