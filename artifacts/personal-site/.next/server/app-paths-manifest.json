@@ -1,5 +1,4 @@
 {
-  "/diabetes/page": "app/diabetes/page.js",
-  "/diabetes/weekly/page": "app/diabetes/weekly/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/diabetes/page": "app/diabetes/page.js"
 }
