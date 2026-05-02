@@ -1,7 +1,7 @@
-import { HeroSection } from "@/components/hero-section";
-import { AboutSection } from "@/components/about-section";
-import { ProjectsSection } from "@/components/projects-section";
-import { DiabetesPreview } from "@/components/diabetes-preview";
+import { HeroSection } from "@/components/home/hero-section";
+import { AboutSection } from "@/components/home/about-section";
+import { ProjectsSection } from "@/components/home/projects-section";
+import { DiabetesPreview } from "@/components/diabetes/preview";
 
 export default function Home() {
   return (
