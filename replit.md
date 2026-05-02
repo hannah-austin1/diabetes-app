@@ -16,6 +16,31 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+### Personal Website (`artifacts/personal-site`)
+- **Framework**: Next.js 15 with React Server Components
+- **Preview path**: `/`
+- **Port**: 25158
+- **Key pages**:
+  - `/` — Home page with hero, about, projects, and live glucose preview
+  - `/diabetes` — Full Nightscout glucose dashboard with roller coaster animation
+- **Nightscout**: `https://hgjaustin-nightscout.fly.dev` (publicly readable, no auth)
+- **Key components**:
+  - `components/roller-coaster-viz.tsx` — Canvas-animated glucose roller coaster (client)
+  - `components/diabetes-stats.tsx` — Current BG, A1C, TIR stats (server)
+  - `lib/nightscout.ts` — Nightscout API fetching + fallback mock data
+  - `lib/utils.ts` — Glucose color helpers, trend arrows, time formatting
+- **Data revalidation**: 5 minutes (ISR)
+
+### API Server (`artifacts/api-server`)
+- **Framework**: Express 5
+- **Port**: 8080
+- **Preview path**: `/api`
+
+### Canvas / Mockup Sandbox (`artifacts/mockup-sandbox`)
+- **Preview path**: `/__mockup`
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages
