@@ -30,17 +30,21 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `/diabetes` — Full Nightscout dashboard: roller coaster, A1C, TIR, fun stats, hourly patterns
 - `/diabetes/weekly` — 13-week table with CSV export
 - `/health` — Apple Health activity page (placeholder + setup guide; requires Health Auto Export iOS app)
+- `/finch` — Finch self-care wellness dashboard (movement, breathing, check-ins, areas) parsed from a manual export ZIP at `data/finch-export.zip`
 
 **Component structure (Next.js conventions):**
 ```
 components/
   ui/           ← shadcn: button, card, badge, progress, separator, table
   layout/       ← nav.tsx (client, uses usePathname)
-  diabetes/     ← stats.tsx, roller-coaster-viz.tsx, preview.tsx, stats-loading.tsx, weekly-export-button.tsx
+  diabetes/     ← stats.tsx, roller-coaster-viz.tsx (accepts FinchEvent[]), preview.tsx, stats-loading.tsx, weekly-export-button.tsx
   home/         ← hero-section.tsx, about-section.tsx, projects-section.tsx
 lib/
   nightscout.ts ← Nightscout fetch + WeeklyReport computation + mock fallback
+  finch.ts      ← Finch export ZIP parser (jszip): MovementSession, BreathingSession, TimerSession, FinchDay, SelfCareArea + summary/event helpers
   utils.ts      ← cn(), mmol conversion, glucoseColor, trendArrow, a1cLabel, date helpers
+data/
+  finch-export.zip ← manual Finch app export; replace to refresh /finch and the coaster overlay
 app/
   layout.tsx    ← root layout, fonts, Nav, footer
   page.tsx      ← home
@@ -62,6 +66,8 @@ app/
 - Revalidation: 5 min (diabetes), 1 hour (weekly)
 
 **Apple Health:** No public web API — requires Health Auto Export (iOS) to POST to `/api/health`. Page shows placeholder stats + 4-step setup guide.
+
+**Finch (self-care app):** No public API. Data comes from manual in-app export ZIPs; drop a new file at `artifacts/personal-site/data/finch-export.zip` to refresh. Parsed server-side via `lib/finch.ts` (jszip). Movement + breathing sessions in the coaster's 12h window are overlaid as emoji markers on `RollerCoasterViz`.
 
 ### API Server (`artifacts/api-server`)
 - **Framework**: Express 5

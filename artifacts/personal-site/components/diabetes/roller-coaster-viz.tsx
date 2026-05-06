@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import type { NightscoutReading } from "@/lib/nightscout";
+import type { FinchEvent } from "@/lib/finch";
 import { glucoseColor, fmtMmol } from "@/lib/utils";
+
+const EVENT_STYLE: Record<FinchEvent["kind"], { emoji: string; color: string }> = {
+  movement: { emoji: "🏃", color: "#22c55e" },
+  breathing: { emoji: "🌬️", color: "#4f8ef7" },
+  timer: { emoji: "⏱️", color: "#a855f7" },
+};
 
 const STARS: { size: number; top: number; left: number; opacity: number }[] = [
   { size: 1, top: 5.2, left: 8.4, opacity: 0.3 },
@@ -39,9 +46,10 @@ const STARS: { size: number; top: number; left: number; opacity: number }[] = [
 
 interface Props {
   readings: NightscoutReading[];
+  events?: FinchEvent[];
 }
 
-export function RollerCoasterViz({ readings }: Props) {
+export function RollerCoasterViz({ readings, events = [] }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const offsetRef = useRef(0);
@@ -49,6 +57,10 @@ export function RollerCoasterViz({ readings }: Props) {
   const sorted = [...readings]
     .sort((a, b) => a.date - b.date)
     .slice(-144);
+
+  const windowStart = sorted[0]?.date ?? 0;
+  const windowEnd = sorted[sorted.length - 1]?.date ?? 0;
+  const eventsInWindow = events.filter((e) => e.ts >= windowStart && e.ts <= windowEnd);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -70,6 +82,13 @@ export function RollerCoasterViz({ readings }: Props) {
 
     const values = sorted.map((r) => r.sgv);
     const trackLength = W * 2;
+    const timeSpan = windowEnd - windowStart || 1;
+
+    function tsToSgvIndex(ts: number): number {
+      // map timestamp into 0..(values.length-1)
+      const ratio = (ts - windowStart) / timeSpan;
+      return Math.max(0, Math.min(values.length - 1, ratio * (values.length - 1)));
+    }
 
     function getTrackPoints(xOffset: number) {
       const pts: { x: number; y: number; sgv: number }[] = [];
@@ -223,6 +242,46 @@ export function RollerCoasterViz({ readings }: Props) {
       ctx!.fillText(mmolStr, carPt.x, labelY);
       ctx!.restore();
 
+      // ── Finch event markers ──────────────────────────────────────────
+      // pts contains 2 copies of the track (total*2 points across trackLength).
+      // We draw each event at BOTH copies' positions so it stays aligned as
+      // the track scrolls and wraps.
+      if (eventsInWindow.length > 0 && pts.length > 1) {
+        const total = values.length;
+        for (const ev of eventsInWindow) {
+          const idxInCopy = Math.round(tsToSgvIndex(ev.ts));
+          const style = EVENT_STYLE[ev.kind];
+
+          for (const baseIdx of [idxInCopy, idxInCopy + total]) {
+            const p = pts[baseIdx];
+            if (!p || p.x < -20 || p.x > W + 20) continue;
+
+            // vertical guide line from the curve down to the baseline
+            ctx!.strokeStyle = style.color + "55";
+            ctx!.lineWidth = 1;
+            ctx!.setLineDash([3, 3]);
+            ctx!.beginPath();
+            ctx!.moveTo(p.x, p.y);
+            ctx!.lineTo(p.x, H - 18);
+            ctx!.stroke();
+            ctx!.setLineDash([]);
+
+            ctx!.save();
+            ctx!.shadowBlur = 8;
+            ctx!.shadowColor = style.color;
+            ctx!.fillStyle = style.color;
+            ctx!.beginPath();
+            ctx!.arc(p.x, H - 14, 4, 0, Math.PI * 2);
+            ctx!.fill();
+            ctx!.restore();
+
+            ctx!.font = "11px sans-serif";
+            ctx!.textAlign = "center";
+            ctx!.fillText(style.emoji, p.x, H - 2);
+          }
+        }
+      }
+
       offsetRef.current += SPEED;
       if (offsetRef.current >= trackLength) offsetRef.current = 0;
       animFrameRef.current = requestAnimationFrame(draw);
@@ -230,7 +289,7 @@ export function RollerCoasterViz({ readings }: Props) {
 
     animFrameRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [sorted]);
+  }, [sorted, eventsInWindow, windowStart, windowEnd]);
 
   return (
     <div className="relative rounded-xl border border-border bg-card overflow-hidden p-2">
@@ -245,7 +304,7 @@ export function RollerCoasterViz({ readings }: Props) {
         ))}
       </div>
       <canvas ref={canvasRef} width={900} height={280} className="w-full rounded-xl relative z-10" />
-      <div className="flex items-center justify-center gap-6 mt-3 pb-2 relative z-10">
+      <div className="flex items-center justify-center gap-6 mt-3 pb-2 relative z-10 flex-wrap">
         {[
           { color: "#22c55e", label: "In Range (3.9–10.0)" },
           { color: "#eab308", label: "High (>10.0)" },
@@ -257,6 +316,17 @@ export function RollerCoasterViz({ readings }: Props) {
             {item.label} mmol/L
           </div>
         ))}
+        {eventsInWindow.length > 0 && (
+          <>
+            <span className="text-xs text-muted-foreground/40">·</span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>🏃</span> Movement
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>🌬️</span> Breathing
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

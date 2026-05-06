@@ -9,6 +9,7 @@ const links = [
   { href: "/diabetes", label: "Glucose" },
   { href: "/diabetes/weekly", label: "Weekly" },
   { href: "/health", label: "Health" },
+  { href: "/finch", label: "Finch" },
 ];
 
 export function Nav() {
