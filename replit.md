@@ -67,7 +67,12 @@ app/
 
 **Apple Health:** No public web API — requires Health Auto Export (iOS) to POST to `/api/health`. Page shows placeholder stats + 4-step setup guide.
 
-**Finch (self-care app):** No public API. Data comes from manual in-app export ZIPs; drop a new file at `artifacts/personal-site/data/finch-export.zip` to refresh. Parsed server-side via `lib/finch.ts` (jszip). Movement + breathing sessions in the coaster's 12h window are overlaid as emoji markers on `RollerCoasterViz`.
+**Finch (self-care app):** No public API. Data comes from manual in-app export ZIPs.
+Two ways to refresh:
+1. Drop a new file at `artifacts/personal-site/data/finch-export.zip` (dev only)
+2. POST the zip to `/sync/finch` with `Authorization: Bearer $FINCH_UPLOAD_TOKEN` (works in prod) — this is the iOS Shortcut path, see the `/finch` page for setup steps. Endpoint validates token, requires it to be a real Finch zip (`FinchDay.json` or `MovementSession.json` present), max 10MB. Calls `revalidatePath` on `/finch` and `/diabetes` after a successful write.
+
+Parsed server-side via `lib/finch.ts` (jszip). Movement + breathing sessions in the coaster's 12h window are overlaid as emoji markers on `RollerCoasterViz`.
 
 ### API Server (`artifacts/api-server`)
 - **Framework**: Express 5

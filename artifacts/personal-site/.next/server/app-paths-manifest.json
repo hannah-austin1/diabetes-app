@@ -1,3 +1,4 @@
 {
+  "/sync/finch/route": "app/sync/finch/route.js",
   "/page": "app/page.js"
 }

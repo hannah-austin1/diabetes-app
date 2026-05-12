@@ -30,3 +30,8 @@ externalPort = 80
 [[ports]]
 localPort = 25158
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+FINCH_UPLOAD_TOKEN = "215e6f6b6f2b2618d32ca76ce26fb53d0b231426f28b51a5fd2443982b4bba75"

@@ -145,32 +145,79 @@ export default async function FinchPage() {
         </div>
       )}
 
-      {/* Auto-fetch reality check */}
-      <Card className="border-glucose-yellow/20">
+      {/* iOS Shortcut auto-upload guide */}
+      <Card className="border-glucose-purple/20">
         <CardContent className="p-6">
           <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-            <span>🐦</span> About auto-fetch
+            <span>📲</span> Auto-upload from iPhone
           </h3>
-          <div className="text-sm text-muted-foreground space-y-2 leading-relaxed">
+          <div className="text-sm text-muted-foreground space-y-3 leading-relaxed">
             <p>
-              Finch doesn&apos;t publish a public API, so this data is loaded from a manual export
-              file. Three options for keeping it fresh:
+              Finch has no public API, so data has to come from a manual export. An iOS Shortcut
+              can do the upload step automatically every time you tap &ldquo;Refresh Finch&rdquo;
+              on your phone.
             </p>
-            <ol className="list-decimal list-inside space-y-1 ml-2">
-              <li>
-                <strong className="text-foreground">Manual</strong> — drop a new{" "}
-                <code className="text-foreground">.zip</code> in <code>data/</code> and redeploy.
-              </li>
-              <li>
-                <strong className="text-foreground">iOS Shortcut</strong> — automate the export tap
-                + email/upload to a webhook.
-              </li>
-              <li>
-                <strong className="text-foreground">Inbox poller</strong> — if you email exports to
-                a dedicated address, a small script can grab them.
-              </li>
-            </ol>
-            <p className="pt-2">
+
+            <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
+              <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-1">
+                Step 1 · In the Finch app
+              </p>
+              <ul className="list-disc list-inside text-xs space-y-1 ml-1">
+                <li>Settings → Account → Export My Data</li>
+                <li>Save the resulting <code>FinchExport_*.zip</code> to Files (any folder)</li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
+              <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-1">
+                Step 2 · Build the Shortcut (one time, ~2 min)
+              </p>
+              <ol className="list-decimal list-inside text-xs space-y-1.5 ml-1">
+                <li>Open <strong>Shortcuts</strong> app → <strong>+ New Shortcut</strong></li>
+                <li>
+                  Add action <code>Select File</code> → set <em>Show Document Picker</em> ON,
+                  <em> Select Multiple</em> OFF
+                </li>
+                <li>
+                  Add action <code>Get Contents of URL</code> with these settings:
+                  <div className="mt-1.5 ml-4 font-mono text-[11px] space-y-0.5 text-foreground/90">
+                    <div>URL: <span className="text-glucose-blue break-all">https://YOUR_DOMAIN/sync/finch</span></div>
+                    <div>Method: <span className="text-glucose-green">POST</span></div>
+                    <div>Headers:</div>
+                    <div className="ml-3">Authorization: <span className="text-glucose-orange">Bearer YOUR_TOKEN</span></div>
+                    <div className="ml-3">Content-Type: <span className="text-glucose-orange">application/zip</span></div>
+                    <div>Request Body: <span className="text-glucose-yellow">File</span> →
+                      use the file from step 2
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  Add action <code>Show Notification</code> → text:
+                  <code className="ml-1">Finch synced ✓</code>
+                </li>
+                <li>Name it <strong>Sync Finch</strong> and add to Home Screen</li>
+              </ol>
+            </div>
+
+            <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
+              <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-1">
+                Step 3 · Daily routine
+              </p>
+              <ul className="list-disc list-inside text-xs space-y-1 ml-1">
+                <li>Tap Finch → Export → save zip (overwrite the previous)</li>
+                <li>Tap the <strong>Sync Finch</strong> icon → done</li>
+                <li>This page will reflect new data within a minute</li>
+              </ul>
+            </div>
+
+            <p className="text-xs pt-1">
+              Want it fully hands-off? Replace the <code>Select File</code> action with{" "}
+              <code>Get File</code> pointing at the same path each time, and Finch&apos;s Export
+              flow saves with the same name — then a single tap from anywhere does the whole
+              round trip.
+            </p>
+
+            <p className="pt-2 text-xs">
               Last parsed: <span className="font-mono">{exportDate.toLocaleString()}</span>
             </p>
           </div>
