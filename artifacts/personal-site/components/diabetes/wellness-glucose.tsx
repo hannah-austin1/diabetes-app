@@ -68,7 +68,7 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
       {/* Daily strip */}
       <Card className="mb-6 overflow-hidden">
         <CardContent className="p-0">
-          <div className="grid grid-cols-[120px_56px_1fr_64px_1fr_72px] gap-3 px-4 py-3 border-b border-border text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          <div className="sticky top-0 z-10 grid grid-cols-[120px_56px_1fr_64px_1fr_72px] gap-3 px-4 py-3 border-b border-border bg-card/95 backdrop-blur text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             <span>Day</span>
             <span>Mood</span>
             <span>Steps</span>
@@ -77,7 +77,7 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
             <span className="text-right">TIR</span>
           </div>
           <div className="divide-y divide-border/60">
-            {[...recent].reverse().map((j) => {
+            {recent.map((j) => {
               const steps = dailySteps(j.finch);
               const stepsPct = steps !== null ? (steps / maxSteps) * 100 : 0;
               const goalsPct =
@@ -94,8 +94,15 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
                   <div className="text-xs font-mono text-foreground">
                     {formatShortDate(j.date)}
                   </div>
-                  <div className="text-center text-lg leading-none" title={j.finch.mood?.label ?? "no mood logged"}>
-                    {mood !== null ? MOOD_EMOJI[mood] ?? "·" : <span className="text-muted-foreground/40">—</span>}
+                  <div className="flex items-center justify-center gap-1 leading-none" title={j.finch.mood?.label ?? "no mood logged"}>
+                    {mood !== null ? (
+                      <>
+                        <span className="text-lg">{MOOD_EMOJI[mood] ?? "·"}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground">{mood}</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground/40">—</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {steps !== null ? (
