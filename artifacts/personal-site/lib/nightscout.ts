@@ -41,7 +41,7 @@ export interface WeeklyReport {
 
 export async function fetchNightscoutData(hours = 24): Promise<NightscoutReading[]> {
   try {
-    const count = Math.min(hours * 12, 5000); // ~5-min intervals, max 5000
+    const count = Math.min(hours * 12, 10000); // ~5-min intervals
     const url = `${NIGHTSCOUT_URL}/api/v1/entries/sgv.json?count=${count}`;
     const res = await fetch(url, {
       next: { revalidate: 60 },
@@ -171,6 +171,110 @@ function getDefaultStats(): NightscoutStats {
     timeBelow: 0, stdDev: 0, totalReadings: 0,
     currentSgv: null, currentTrend: null, currentDate: null,
   };
+}
+
+// ── Per-day roll-up ──────────────────────────────────────────────────────────
+
+export interface DayGlucoseStats {
+  date: string; // YYYY-MM-DD (server-local)
+  startTs: number; // unix ms of local midnight
+  avg: number; // mg/dL
+  tir: number; // % in 70–180 (3.9–10.0 mmol/L)
+  timeAbove: number; // %
+  timeBelow: number; // %
+  stdDev: number; // mg/dL
+  cv: number; // % (stdDev / avg)
+  peak: number; // mg/dL
+  valley: number; // mg/dL
+  readingCount: number;
+  /** ~24-point downsampled sparkline (mg/dL). */
+  sparkline: number[];
+}
+
+// Finch's `DailySummary.date` is bucketed in the user's local TZ (Europe/London,
+// emitted by their iOS shortcut). The site runs on Replit's UTC servers, so
+// using `new Date(ts).getDate()` would shift glucose days by up to 1h every
+// night and silently mis-align the join. We pin the date key to Europe/London
+// so both pipelines agree on what "today" means.
+const TZ = "Europe/London";
+const dateFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+function localDateKey(ts: number): { key: string; midnight: number } {
+  const key = dateFmt.format(new Date(ts)); // YYYY-MM-DD in Europe/London
+  // Approximate midnight: parse the YYYY-MM-DD as if it were the wall clock
+  // moment. Good enough for sparkline bucketing (24 equal slots across the day
+  // — a 1h DST drift just shifts one bucket).
+  const midnight = Date.parse(key + "T00:00:00Z");
+  return { key, midnight };
+}
+
+/**
+ * Roll a flat list of readings into per-calendar-day stats.
+ * Days with fewer than `minReadings` are dropped to keep noise out of correlations.
+ */
+export function perDayStats(
+  readings: NightscoutReading[],
+  minReadings = 50,
+): DayGlucoseStats[] {
+  if (readings.length === 0) return [];
+  const byDay = new Map<string, { startTs: number; rs: NightscoutReading[] }>();
+  for (const r of readings) {
+    const { key, midnight } = localDateKey(r.date);
+    const cur = byDay.get(key) ?? { startTs: midnight, rs: [] };
+    cur.rs.push(r);
+    byDay.set(key, cur);
+  }
+
+  const out: DayGlucoseStats[] = [];
+  for (const [date, { startTs, rs }] of byDay.entries()) {
+    if (rs.length < minReadings) continue;
+    const sorted = [...rs].sort((a, b) => a.date - b.date);
+    const vals = sorted.map((r) => r.sgv);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    const avg = sum / vals.length;
+    const inRange = vals.filter((v) => v >= 70 && v <= 180).length;
+    const above = vals.filter((v) => v > 180).length;
+    const below = vals.filter((v) => v < 70).length;
+    const variance = vals.reduce((s, v) => s + (v - avg) ** 2, 0) / vals.length;
+    const stdDev = Math.sqrt(variance);
+    const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
+
+    // ~24-point sparkline by bucketing into 24 equal time slots across the day
+    const bucketCount = 24;
+    const buckets: { sum: number; n: number }[] = Array.from(
+      { length: bucketCount },
+      () => ({ sum: 0, n: 0 }),
+    );
+    const dayMs = 24 * 60 * 60 * 1000;
+    for (const r of sorted) {
+      const offset = Math.max(0, Math.min(dayMs - 1, r.date - startTs));
+      const idx = Math.min(bucketCount - 1, Math.floor((offset / dayMs) * bucketCount));
+      buckets[idx].sum += r.sgv;
+      buckets[idx].n++;
+    }
+    const sparkline = buckets.map((b) => (b.n > 0 ? b.sum / b.n : avg));
+
+    out.push({
+      date,
+      startTs,
+      avg: Math.round(avg),
+      tir: Math.round((inRange / vals.length) * 100),
+      timeAbove: Math.round((above / vals.length) * 100),
+      timeBelow: Math.round((below / vals.length) * 100),
+      stdDev: Math.round(stdDev),
+      cv: Math.round(cv * 10) / 10,
+      peak: Math.max(...vals),
+      valley: Math.min(...vals),
+      readingCount: vals.length,
+      sparkline,
+    });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function getMockReadings(hours: number): NightscoutReading[] {

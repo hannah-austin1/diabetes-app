@@ -3,19 +3,21 @@ import Link from "next/link";
 import { DiabetesStats } from "@/components/diabetes/stats";
 import { RollerCoasterViz } from "@/components/diabetes/roller-coaster-viz";
 import { DiabetesStatsLoading } from "@/components/diabetes/stats-loading";
-import { fetchNightscoutData, fetchNightscoutStats, type NightscoutReading } from "@/lib/nightscout";
+import { fetchNightscoutData, fetchNightscoutStats, perDayStats, type NightscoutReading } from "@/lib/nightscout";
 import { fetchFinchData, eventsForWindow } from "@/lib/finch";
 import { fmtMmol, toMmol } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { WellnessGlucose } from "@/components/diabetes/wellness-glucose";
 
 export const revalidate = 300;
 
 export default async function DiabetesPage() {
-  const [readings, stats, finchDays] = await Promise.all([
+  const [readings, stats, finchDays, monthReadings] = await Promise.all([
     fetchNightscoutData(48),
     fetchNightscoutStats(),
     fetchFinchData(),
+    fetchNightscoutData(30 * 24),
   ]);
 
   const sortedReadings = [...readings].sort((a, b) => a.date - b.date).slice(-144);
@@ -23,6 +25,7 @@ export default async function DiabetesPage() {
   const windowEnd = sortedReadings[sortedReadings.length - 1]?.date ?? 0;
   const finchEvents = eventsForWindow(finchDays, windowStart, windowEnd);
 
+  const glucoseDays = perDayStats(monthReadings);
   const hourlyStats = computeHourlyStats(readings);
 
   return (
@@ -68,7 +71,10 @@ export default async function DiabetesPage() {
         <FunStats readings={readings} a1c={stats.a1c} />
       </div>
 
-      {/* 4. Hourly Patterns */}
+      {/* 4. Wellness vs Glucose (30 days) */}
+      <WellnessGlucose glucoseDays={glucoseDays} finchDays={finchDays} />
+
+      {/* 5. Hourly Patterns */}
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-foreground mb-2">When is Your Glucose Highest?</h2>
         <p className="text-muted-foreground text-sm mb-6">
