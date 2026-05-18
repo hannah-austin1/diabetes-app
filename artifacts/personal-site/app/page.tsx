@@ -2,6 +2,8 @@ import { HeroSection } from "@/components/home/hero-section";
 import { AboutSection } from "@/components/home/about-section";
 import { ProjectsSection } from "@/components/home/projects-section";
 import { DiabetesPreview } from "@/components/diabetes/preview";
+import { FinchPreview } from "@/components/finch/preview";
+import { HealthPreview } from "@/components/health/preview";
 
 export default function Home() {
   return (
@@ -10,6 +12,8 @@ export default function Home() {
       <AboutSection />
       <ProjectsSection />
       <DiabetesPreview />
+      <FinchPreview />
+      <HealthPreview />
     </div>
   );
 }
