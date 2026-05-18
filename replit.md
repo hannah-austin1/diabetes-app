@@ -29,8 +29,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `/` — Home: hero, about, projects, live glucose preview
 - `/diabetes` — Full Nightscout dashboard: roller coaster, A1C, TIR, fun stats, hourly patterns
 - `/diabetes/weekly` — 13-week table with CSV export
-- `/health` — Apple Health activity page (placeholder + setup guide; requires Health Auto Export iOS app)
-- `/finch` — Finch self-care wellness dashboard (movement, breathing, check-ins, areas) parsed from a manual export ZIP at `data/finch-export.zip`
+- `/health` — Apple Health activity page, daily metric rollups (live from Firebase `getFinchData`)
+- `/finch` — Finch wellness: check-in streak, goal completion, top goals, self-care areas, mood, Apple Health snapshot (live from Firebase `getFinchData`)
 
 **Component structure (Next.js conventions):**
 ```
@@ -41,15 +41,14 @@ components/
   home/         ← hero-section.tsx, about-section.tsx, projects-section.tsx
 lib/
   nightscout.ts ← Nightscout fetch + WeeklyReport computation + mock fallback
-  finch.ts      ← Finch export ZIP parser (jszip): MovementSession, BreathingSession, TimerSession, FinchDay, SelfCareArea + summary/event helpers
+  finch.ts      ← Firebase `getFinchData` fetcher (DailySummary[]) + summarizeFinch, eventsForWindow, rollupHealth
   utils.ts      ← cn(), mmol conversion, glucoseColor, trendArrow, a1cLabel, date helpers
-data/
-  finch-export.zip ← manual Finch app export; replace to refresh /finch and the coaster overlay
 app/
   layout.tsx    ← root layout, fonts, Nav, footer
   page.tsx      ← home
   diabetes/page.tsx
   diabetes/weekly/page.tsx
+  finch/page.tsx
   health/page.tsx
 ```
 
@@ -65,14 +64,13 @@ app/
 - Falls back to deterministic mock data on fetch failure (no hydration mismatch)
 - Revalidation: 5 min (diabetes), 1 hour (weekly)
 
-**Apple Health:** No public web API — requires Health Auto Export (iOS) to POST to `/api/health`. Page shows placeholder stats + 4-step setup guide.
+**Finch + Apple Health (single pipeline):** Both `/finch` and `/health` fetch from one Firebase Cloud Function:
 
-**Finch (self-care app):** No public API. Data comes from manual in-app export ZIPs.
-Two ways to refresh:
-1. Drop a new file at `artifacts/personal-site/data/finch-export.zip` (dev only)
-2. POST the zip to `/sync/finch` with `Authorization: Bearer $FINCH_UPLOAD_TOKEN` (works in prod) — this is the iOS Shortcut path, see the `/finch` page for setup steps. Endpoint validates token, requires it to be a real Finch zip (`FinchDay.json` or `MovementSession.json` present), max 10MB. Calls `revalidatePath` on `/finch` and `/diabetes` after a successful write.
-
-Parsed server-side via `lib/finch.ts` (jszip). Movement + breathing sessions in the coaster's 12h window are overlaid as emoji markers on `RollerCoasterViz`.
+- Endpoint: `https://europe-west1-diabetes-45626.cloudfunctions.net/getFinchData` (public, no auth)
+- Response: `{ ok, from, to, days, data: DailySummary[] }` — one summary per calendar day with mood, scheduled/completed goals (with text/emoji/areas/date), reflections, good vibes count, breathing sessions count, and a `health` record of HealthKit metrics (`Steps`, etc.) keyed by HKQuantityType identifier.
+- Refresh cycle: an iOS Shortcut on the phone uploads Finch export + Apple Health snapshot to Firestore; this site re-fetches once per hour (`revalidate: 3600`).
+- `lib/finch.ts` owns the wire types, `fetchFinchData()`, `summarizeFinch()` (streaks, completion rate, top goals, area counts, avg mood), `rollupHealth()` (per-metric daily breakdown + averages), and `eventsForWindow()` for the coaster overlay.
+- Coaster overlay: `RollerCoasterViz` accepts `FinchEvent[]` of kind `goal` / `breathing` / `reflection`. Currently empty until the Cloud Function emits per-goal timestamps (`ts` or `completedAt` on `CompletedGoal`) — code is forward-compatible and lights up automatically once timestamps arrive.
 
 ### API Server (`artifacts/api-server`)
 - **Framework**: Express 5

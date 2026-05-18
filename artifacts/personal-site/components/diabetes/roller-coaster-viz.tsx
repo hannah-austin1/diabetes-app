@@ -5,10 +5,9 @@ import type { NightscoutReading } from "@/lib/nightscout";
 import type { FinchEvent } from "@/lib/finch";
 import { glucoseColor, fmtMmol } from "@/lib/utils";
 
-const EVENT_STYLE: Record<FinchEvent["kind"], { emoji: string; color: string }> = {
-  movement: { emoji: "🏃", color: "#22c55e" },
-  breathing: { emoji: "🌬️", color: "#4f8ef7" },
-  timer: { emoji: "⏱️", color: "#a855f7" },
+const EVENT_STYLE: Record<FinchEvent["kind"], { fallbackEmoji: string; color: string }> = {
+  goal: { fallbackEmoji: "✅", color: "#22c55e" },
+  reflection: { fallbackEmoji: "📝", color: "#a855f7" },
 };
 
 const STARS: { size: number; top: number; left: number; opacity: number }[] = [
@@ -277,7 +276,7 @@ export function RollerCoasterViz({ readings, events = [] }: Props) {
 
             ctx!.font = "11px sans-serif";
             ctx!.textAlign = "center";
-            ctx!.fillText(style.emoji, p.x, H - 2);
+            ctx!.fillText(ev.emoji ?? style.fallbackEmoji, p.x, H - 2);
           }
         }
       }
@@ -320,10 +319,7 @@ export function RollerCoasterViz({ readings, events = [] }: Props) {
           <>
             <span className="text-xs text-muted-foreground/40">·</span>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>🏃</span> Movement
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>🌬️</span> Breathing
+              <span>✅</span> Finch goal
             </div>
           </>
         )}

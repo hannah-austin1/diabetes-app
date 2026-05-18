@@ -1,186 +1,167 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import JSZip from "jszip";
+// Finch + Apple Health data, fetched from the Firebase Cloud Function
+// `getFinchData`. The function returns one aggregated DailySummary per
+// calendar day (see attached_assets/types_*.ts for the canonical shape).
 
-export interface MovementSession {
-  movementGroupType: string;
-  dt: string;
-  durationInMins: number;
-  ts: number;
+const ENDPOINT =
+  "https://europe-west1-diabetes-45626.cloudfunctions.net/getFinchData";
+
+// ── Wire types ────────────────────────────────────────────────────────────────
+
+export interface CompletedGoal {
+  text: string;
+  emoji: string | null;
+  areas: string[] | null;
+  date: string;
+  /** Forward-compatible: present once the Firebase function emits per-goal timestamps. */
+  ts?: number;
+  /** Forward-compatible: optional ISO-8601 completion time. */
+  completedAt?: string;
 }
 
-export interface BreathingSession {
-  breathing_type: string;
-  duration: number;
-  start_time: string;
-  completed_time: string;
-  ts: number;
+export interface HealthMetric {
+  value: number;
+  unit: string;
+  count: number;
 }
 
-export interface TimerSession {
-  timerTypeIndex: number;
-  selectedDurationSeconds: number;
-  startTime: string;
-  completedTime: string;
-  ts: number;
+export interface DailySummary {
+  date: string;
+  mood: { score: number; label: string } | null;
+  scheduled_goals_count: number;
+  completed_goals_count: number;
+  completed_goals: CompletedGoal[];
+  completed_reflections_count: number;
+  completed_reflections: CompletedGoal[];
+  good_vibes_count: number;
+  breathing_sessions_count: number;
+  /** Apple Health metrics keyed by HKQuantityType identifier (e.g. "Steps"). */
+  health: Record<string, HealthMetric>;
+  /** Firestore timestamp of when this day was last written. */
+  uploadedAt?: { _seconds: number; _nanoseconds: number };
 }
 
-export interface FinchDayEntry {
-  dt: string;
-  date_string: string;
-  energy: number;
-  affection: number;
-  rainbow_stones: number;
-  checked_in: boolean;
-  achieve_full_energy: boolean;
-  ts: number;
+interface FinchResponse {
+  ok: boolean;
+  from: string;
+  to: string;
+  days: number;
+  data: DailySummary[];
 }
 
-export interface SelfCareArea {
-  name: string;
-  emoji_char: string;
-  status: string;
-  total_stars: number;
-  total_weeks_with_three_stars: number;
+// ── Fetch ────────────────────────────────────────────────────────────────────
+
+function isValidDay(x: unknown): x is DailySummary {
+  if (!x || typeof x !== "object") return false;
+  const d = x as Record<string, unknown>;
+  return (
+    typeof d.date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(d.date) &&
+    typeof d.scheduled_goals_count === "number" &&
+    typeof d.completed_goals_count === "number" &&
+    Array.isArray(d.completed_goals) &&
+    Array.isArray(d.completed_reflections) &&
+    typeof d.good_vibes_count === "number" &&
+    typeof d.breathing_sessions_count === "number" &&
+    typeof d.health === "object" && d.health !== null
+  );
 }
 
-export interface FinchData {
-  movements: MovementSession[];
-  breathing: BreathingSession[];
-  timers: TimerSession[];
-  days: FinchDayEntry[];
-  areas: SelfCareArea[];
-  exportPath: string;
-  parsedAt: number;
-}
-
-const DEFAULT_PATH = path.join(process.cwd(), "data", "finch-export.zip");
-
-function parseRfc1123(s: string): number {
-  // "Fri, 3 Apr 2026 12:59:09" — JS Date can parse this
-  const t = Date.parse(s);
-  return isNaN(t) ? 0 : t;
-}
-
-function parseIsoLoose(s: string): number {
-  if (!s) return 0;
-  const t = Date.parse(s);
-  return isNaN(t) ? parseRfc1123(s) : t;
-}
-
-async function readJson<T>(zip: JSZip, name: string): Promise<T[]> {
-  const file = zip.file(name);
-  if (!file) return [];
-  const text = await file.async("string");
+export async function fetchFinchData(): Promise<DailySummary[]> {
   try {
-    const parsed = JSON.parse(text);
-    return Array.isArray(parsed?.data) ? parsed.data : [];
+    const res = await fetch(ENDPOINT, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    const json: unknown = await res.json();
+    if (!json || typeof json !== "object") return [];
+    const r = json as Partial<FinchResponse>;
+    if (r.ok !== true || !Array.isArray(r.data)) return [];
+    const valid = r.data.filter(isValidDay);
+    return valid.sort((a, b) => a.date.localeCompare(b.date));
   } catch {
     return [];
   }
 }
 
-export async function loadFinchExport(zipPath = DEFAULT_PATH): Promise<FinchData | null> {
-  let buf: Buffer;
-  try {
-    buf = await fs.readFile(zipPath);
-  } catch {
-    return null;
-  }
-
-  let zip: JSZip;
-  try {
-    zip = await JSZip.loadAsync(buf);
-  } catch {
-    return null;
-  }
-
-  let rawMove: Omit<MovementSession, "ts">[];
-  let rawBreath: Omit<BreathingSession, "ts">[];
-  let rawTimer: Omit<TimerSession, "ts">[];
-  let rawDays: Omit<FinchDayEntry, "ts">[];
-  let rawAreas: SelfCareArea[];
-  try {
-    [rawMove, rawBreath, rawTimer, rawDays, rawAreas] = await Promise.all([
-      readJson<Omit<MovementSession, "ts">>(zip, "MovementSession.json"),
-      readJson<Omit<BreathingSession, "ts">>(zip, "BreathingSession.json"),
-      readJson<Omit<TimerSession, "ts">>(zip, "TimerSession.json"),
-      readJson<Omit<FinchDayEntry, "ts">>(zip, "FinchDay.json"),
-      readJson<SelfCareArea>(zip, "SelfCareArea.json"),
-    ]);
-  } catch {
-    return null;
-  }
-
-  const movements: MovementSession[] = rawMove
-    .map((m) => ({ ...m, ts: parseIsoLoose(m.dt) }))
-    .filter((m) => m.ts > 0)
-    .sort((a, b) => a.ts - b.ts);
-
-  const breathing: BreathingSession[] = rawBreath
-    .map((b) => ({ ...b, ts: parseRfc1123(b.start_time) }))
-    .filter((b) => b.ts > 0)
-    .sort((a, b) => a.ts - b.ts);
-
-  const timers: TimerSession[] = rawTimer
-    .map((t) => ({ ...t, ts: parseRfc1123(t.startTime) }))
-    .filter((t) => t.ts > 0)
-    .sort((a, b) => a.ts - b.ts);
-
-  const days: FinchDayEntry[] = rawDays
-    .map((d) => ({ ...d, ts: parseIsoLoose(d.dt) }))
-    .filter((d) => d.ts > 0)
-    .sort((a, b) => a.ts - b.ts);
-
-  return {
-    movements,
-    breathing,
-    timers,
-    days,
-    areas: rawAreas,
-    exportPath: zipPath,
-    parsedAt: Date.now(),
-  };
+/** A day is considered "active" if any wellness signal was logged. */
+function isActiveDay(d: DailySummary): boolean {
+  return (
+    d.completed_goals_count > 0 ||
+    d.completed_reflections_count > 0 ||
+    d.good_vibes_count > 0 ||
+    d.breathing_sessions_count > 0 ||
+    d.mood !== null
+  );
 }
 
-// ── Derived stats ────────────────────────────────────────────────────────────
+// ── Mood helper ──────────────────────────────────────────────────────────────
+
+export function moodLabel(score: number): string {
+  return (
+    ["", "very bad", "bad", "okay", "good", "very good"][score] ?? "unknown"
+  );
+}
+
+// ── Derived summary stats ────────────────────────────────────────────────────
+
+export interface AreaCount {
+  area: string;
+  count: number;
+}
+
+export interface TopGoal {
+  text: string;
+  emoji: string | null;
+  count: number;
+}
 
 export interface FinchSummary {
   totalDays: number;
-  checkedInDays: number;
-  fullEnergyDays: number;
-  avgEnergy: number;
-  totalRainbowStones: number;
-  movementCount: number;
-  movementMinutes: number;
-  breathingCount: number;
-  breathingMinutes: number;
-  timerCount: number;
-  timerMinutes: number;
+  daysWithCheckIn: number;
+  totalGoalsCompleted: number;
+  totalGoalsScheduled: number;
+  completionRate: number; // 0..1
+  totalGoodVibes: number;
+  totalBreathingSessions: number;
+  totalReflections: number;
+  avgGoalsPerDay: number;
   longestStreak: number;
   currentStreak: number;
-  movementByType: { type: string; count: number; minutes: number }[];
-  breathingByType: { type: string; count: number; minutes: number }[];
-  firstDay: number;
-  lastDay: number;
+  avgMoodScore: number | null;
+  daysWithMood: number;
+  areaCounts: AreaCount[];
+  topGoals: TopGoal[];
+  firstDate: string | null;
+  lastDate: string | null;
+  lastUpdatedTs: number;
 }
 
-export function summarizeFinch(d: FinchData): FinchSummary {
-  const days = d.days;
-  const checkedIn = days.filter((x) => x.checked_in).length;
-  const fullEnergy = days.filter((x) => x.achieve_full_energy).length;
-  const avgEnergy =
-    days.length > 0 ? days.reduce((s, x) => s + (x.energy ?? 0), 0) / days.length : 0;
-  const stones = days.length > 0 ? Math.max(...days.map((x) => x.rainbow_stones ?? 0)) : 0;
+export function summarizeFinch(days: DailySummary[]): FinchSummary {
+  const total = days.length;
+  const daysWithCheckIn = days.filter(isActiveDay).length;
+  const totalCompleted = days.reduce((s, d) => s + d.completed_goals_count, 0);
+  const totalScheduled = days.reduce((s, d) => s + d.scheduled_goals_count, 0);
+  const totalGoodVibes = days.reduce((s, d) => s + d.good_vibes_count, 0);
+  const totalBreathing = days.reduce((s, d) => s + d.breathing_sessions_count, 0);
+  const totalReflections = days.reduce(
+    (s, d) => s + d.completed_reflections_count,
+    0,
+  );
 
-  // streaks computed from check-ins on consecutive calendar days
-  const checkInDates = new Set(days.filter((x) => x.checked_in).map((x) => x.date_string));
+  const moodDays = days.filter((d) => d.mood && typeof d.mood.score === "number");
+  const avgMoodScore =
+    moodDays.length > 0
+      ? moodDays.reduce((s, d) => s + (d.mood!.score ?? 0), 0) / moodDays.length
+      : null;
+
+  // streaks: consecutive calendar days with any wellness signal logged
+  const checkInDates = new Set(
+    days.filter(isActiveDay).map((d) => d.date),
+  );
+  const sortedDates = [...checkInDates].sort();
   let longest = 0;
-  let current = 0;
   let running = 0;
   let prev: number | null = null;
-  for (const dStr of [...checkInDates].sort()) {
-    const t = Date.parse(dStr);
+  for (const dStr of sortedDates) {
+    const t = Date.parse(dStr + "T00:00:00Z");
     if (prev !== null && t - prev === 86_400_000) {
       running++;
     } else {
@@ -189,99 +170,195 @@ export function summarizeFinch(d: FinchData): FinchSummary {
     if (running > longest) longest = running;
     prev = t;
   }
-  current = running;
 
-  const moveMinutes = d.movements.reduce((s, m) => s + (m.durationInMins ?? 0), 0);
-  const breathSec = d.breathing.reduce((s, b) => s + (b.duration ?? 0), 0);
-  const timerSec = d.timers.reduce((s, t) => s + (t.selectedDurationSeconds ?? 0), 0);
+  // current streak = trailing run ending at the last date in the dataset that
+  // actually had a check-in (so it represents recency, not a gap to "today")
+  let current = 0;
+  if (sortedDates.length > 0) {
+    current = 1;
+    for (let i = sortedDates.length - 1; i > 0; i--) {
+      const a = Date.parse(sortedDates[i - 1] + "T00:00:00Z");
+      const b = Date.parse(sortedDates[i] + "T00:00:00Z");
+      if (b - a === 86_400_000) current++;
+      else break;
+    }
+  }
 
-  const moveByMap = new Map<string, { count: number; minutes: number }>();
-  for (const m of d.movements) {
-    const key = m.movementGroupType;
-    const cur = moveByMap.get(key) ?? { count: 0, minutes: 0 };
-    cur.count++;
-    cur.minutes += m.durationInMins;
-    moveByMap.set(key, cur);
+  // area counts across all completed goals
+  const areaMap = new Map<string, number>();
+  for (const day of days) {
+    for (const g of day.completed_goals) {
+      for (const a of g.areas ?? []) {
+        areaMap.set(a, (areaMap.get(a) ?? 0) + 1);
+      }
+    }
   }
-  const breathByMap = new Map<string, { count: number; minutes: number }>();
-  for (const b of d.breathing) {
-    const cur = breathByMap.get(b.breathing_type) ?? { count: 0, minutes: 0 };
-    cur.count++;
-    cur.minutes += b.duration / 60;
-    breathByMap.set(b.breathing_type, cur);
+  const areaCounts = [...areaMap.entries()]
+    .map(([area, count]) => ({ area, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // top recurring goal texts
+  const goalMap = new Map<string, { emoji: string | null; count: number }>();
+  for (const day of days) {
+    for (const g of day.completed_goals) {
+      const key = g.text;
+      const cur = goalMap.get(key) ?? { emoji: g.emoji, count: 0 };
+      cur.count++;
+      if (!cur.emoji && g.emoji) cur.emoji = g.emoji;
+      goalMap.set(key, cur);
+    }
   }
+  const topGoals = [...goalMap.entries()]
+    .map(([text, v]) => ({ text, emoji: v.emoji, count: v.count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  const firstDate = days[0]?.date ?? null;
+  const lastDate = days[days.length - 1]?.date ?? null;
+  const lastUpdatedTs = days.reduce(
+    (m, d) => Math.max(m, (d.uploadedAt?._seconds ?? 0) * 1000),
+    0,
+  );
 
   return {
-    totalDays: days.length,
-    checkedInDays: checkedIn,
-    fullEnergyDays: fullEnergy,
-    avgEnergy: Math.round(avgEnergy),
-    totalRainbowStones: stones,
-    movementCount: d.movements.length,
-    movementMinutes: moveMinutes,
-    breathingCount: d.breathing.length,
-    breathingMinutes: Math.round(breathSec / 60),
-    timerCount: d.timers.length,
-    timerMinutes: Math.round(timerSec / 60),
+    totalDays: total,
+    daysWithCheckIn,
+    totalGoalsCompleted: totalCompleted,
+    totalGoalsScheduled: totalScheduled,
+    completionRate:
+      totalScheduled > 0 ? totalCompleted / totalScheduled : 0,
+    totalGoodVibes,
+    totalBreathingSessions: totalBreathing,
+    totalReflections,
+    avgGoalsPerDay: total > 0 ? totalCompleted / total : 0,
     longestStreak: longest,
     currentStreak: current,
-    movementByType: [...moveByMap.entries()]
-      .map(([type, v]) => ({ type, count: v.count, minutes: v.minutes }))
-      .sort((a, b) => b.minutes - a.minutes),
-    breathingByType: [...breathByMap.entries()]
-      .map(([type, v]) => ({ type, count: v.count, minutes: Math.round(v.minutes) }))
-      .sort((a, b) => b.minutes - a.minutes),
-    firstDay: days[0]?.ts ?? 0,
-    lastDay: days[days.length - 1]?.ts ?? 0,
+    avgMoodScore,
+    daysWithMood: moodDays.length,
+    areaCounts,
+    topGoals,
+    firstDate,
+    lastDate,
+    lastUpdatedTs,
   };
 }
 
-// Plain-JSON shape safe to pass from server → client component
+// ── Coaster event overlay ────────────────────────────────────────────────────
+// Goal completions get plotted on the roller-coaster when (and only when) the
+// upstream function provides a timestamp. Until then this returns []
+// gracefully.
+
+// Only `goal` and `reflection` are emittable: both share the CompletedGoal shape
+// which can carry an optional `ts` / `completedAt` timestamp from the upstream
+// Cloud Function. `breathing_sessions_count` is a daily count with no
+// per-session timestamp, so breathing events are intentionally omitted here
+// until the upstream schema gains per-session times.
 export interface FinchEvent {
   ts: number;
-  kind: "movement" | "breathing" | "timer";
+  kind: "goal" | "reflection";
   label: string;
-  durationMin: number;
+  emoji: string | null;
 }
 
-export function eventsForWindow(d: FinchData, sinceTs: number, untilTs: number): FinchEvent[] {
+function goalTs(g: CompletedGoal): number | null {
+  if (typeof g.ts === "number" && g.ts > 0) return g.ts;
+  if (typeof g.completedAt === "string") {
+    const t = Date.parse(g.completedAt);
+    if (!Number.isNaN(t)) return t;
+  }
+  return null;
+}
+
+export function eventsForWindow(
+  days: DailySummary[],
+  sinceTs: number,
+  untilTs: number,
+): FinchEvent[] {
   const out: FinchEvent[] = [];
-  for (const m of d.movements) {
-    if (m.ts >= sinceTs && m.ts <= untilTs) {
-      out.push({
-        ts: m.ts,
-        kind: "movement",
-        label: humanizeMovement(m.movementGroupType),
-        durationMin: m.durationInMins,
-      });
+  for (const day of days) {
+    for (const g of day.completed_goals) {
+      const ts = goalTs(g);
+      if (ts !== null && ts >= sinceTs && ts <= untilTs) {
+        out.push({ ts, kind: "goal", label: g.text, emoji: g.emoji });
+      }
     }
-  }
-  for (const b of d.breathing) {
-    if (b.ts >= sinceTs && b.ts <= untilTs) {
-      out.push({
-        ts: b.ts,
-        kind: "breathing",
-        label: b.breathing_type,
-        durationMin: Math.max(1, Math.round(b.duration / 60)),
-      });
-    }
-  }
-  for (const t of d.timers) {
-    if (t.ts >= sinceTs && t.ts <= untilTs) {
-      out.push({
-        ts: t.ts,
-        kind: "timer",
-        label: "session",
-        durationMin: Math.max(1, Math.round(t.selectedDurationSeconds / 60)),
-      });
+    for (const r of day.completed_reflections) {
+      const ts = goalTs(r);
+      if (ts !== null && ts >= sinceTs && ts <= untilTs) {
+        out.push({ ts, kind: "reflection", label: r.text, emoji: r.emoji });
+      }
     }
   }
   return out.sort((a, b) => a.ts - b.ts);
 }
 
-export function humanizeMovement(t: string): string {
-  return t
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
+// ── Apple Health helpers ─────────────────────────────────────────────────────
+
+/** Friendly label + emoji for a HealthKit identifier key. */
+export function healthLabel(key: string): { label: string; emoji: string } {
+  const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
+  const table: Record<string, { label: string; emoji: string }> = {
+    Steps: { label: "Steps", emoji: "🚶" },
+    StepCount: { label: "Steps", emoji: "🚶" },
+    DistanceWalkingRunning: { label: "Distance", emoji: "📏" },
+    ActiveEnergyBurned: { label: "Active Energy", emoji: "🔥" },
+    BasalEnergyBurned: { label: "Resting Energy", emoji: "🛋️" },
+    AppleExerciseTime: { label: "Exercise Minutes", emoji: "🏋️" },
+    AppleStandTime: { label: "Stand Time", emoji: "🧍" },
+    HeartRate: { label: "Heart Rate", emoji: "❤️" },
+    RestingHeartRate: { label: "Resting HR", emoji: "💗" },
+    HeartRateVariabilitySDNN: { label: "HRV", emoji: "💓" },
+    FlightsClimbed: { label: "Flights Climbed", emoji: "🪜" },
+    SleepAnalysis: { label: "Sleep", emoji: "😴" },
+  };
+  return table[trimmed] ?? { label: trimmed, emoji: "📊" };
+}
+
+export interface HealthRollup {
+  key: string;
+  label: string;
+  emoji: string;
+  unit: string;
+  total: number; // sum across days (for cumulative metrics)
+  avg: number; // per-day average over days that had data
+  daysWithData: number;
+  perDay: { date: string; value: number }[];
+}
+
+/** Roll Apple Health metrics across days into a per-metric summary. */
+export function rollupHealth(days: DailySummary[]): HealthRollup[] {
+  const byKey = new Map<
+    string,
+    { unit: string; total: number; days: number; perDay: { date: string; value: number }[] }
+  >();
+  for (const day of days) {
+    for (const [key, m] of Object.entries(day.health ?? {})) {
+      const cur = byKey.get(key) ?? {
+        unit: m.unit,
+        total: 0,
+        days: 0,
+        perDay: [],
+      };
+      cur.total += m.value;
+      cur.days++;
+      cur.perDay.push({ date: day.date, value: m.value });
+      if (!cur.unit && m.unit) cur.unit = m.unit;
+      byKey.set(key, cur);
+    }
+  }
+  return [...byKey.entries()]
+    .map(([key, v]) => {
+      const meta = healthLabel(key);
+      return {
+        key,
+        label: meta.label,
+        emoji: meta.emoji,
+        unit: v.unit,
+        total: v.total,
+        avg: v.days > 0 ? v.total / v.days : 0,
+        daysWithData: v.days,
+        perDay: v.perDay.sort((a, b) => a.date.localeCompare(b.date)),
+      };
+    })
+    .sort((a, b) => b.daysWithData - a.daysWithData);
 }

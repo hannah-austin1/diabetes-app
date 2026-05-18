@@ -4,7 +4,7 @@ import { DiabetesStats } from "@/components/diabetes/stats";
 import { RollerCoasterViz } from "@/components/diabetes/roller-coaster-viz";
 import { DiabetesStatsLoading } from "@/components/diabetes/stats-loading";
 import { fetchNightscoutData, fetchNightscoutStats, type NightscoutReading } from "@/lib/nightscout";
-import { loadFinchExport, eventsForWindow } from "@/lib/finch";
+import { fetchFinchData, eventsForWindow } from "@/lib/finch";
 import { fmtMmol, toMmol } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,16 +12,16 @@ import { Badge } from "@/components/ui/badge";
 export const revalidate = 300;
 
 export default async function DiabetesPage() {
-  const [readings, stats, finch] = await Promise.all([
+  const [readings, stats, finchDays] = await Promise.all([
     fetchNightscoutData(48),
     fetchNightscoutStats(),
-    loadFinchExport(),
+    fetchFinchData(),
   ]);
 
   const sortedReadings = [...readings].sort((a, b) => a.date - b.date).slice(-144);
   const windowStart = sortedReadings[0]?.date ?? 0;
   const windowEnd = sortedReadings[sortedReadings.length - 1]?.date ?? 0;
-  const finchEvents = finch ? eventsForWindow(finch, windowStart, windowEnd) : [];
+  const finchEvents = eventsForWindow(finchDays, windowStart, windowEnd);
 
   const hourlyStats = computeHourlyStats(readings);
 
