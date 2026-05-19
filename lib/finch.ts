@@ -319,24 +319,103 @@ export function eventsForWindow(
 
 // ── Apple Health helpers ─────────────────────────────────────────────────────
 
+interface MetricMeta {
+  label: string;
+  emoji: string;
+  category: HealthCategory;
+}
+
+export type HealthCategory =
+  | "Activity"
+  | "Body"
+  | "Heart & Vitals"
+  | "Sleep & Recovery"
+  | "Nutrition"
+  | "Other";
+
+const CATEGORY_ORDER: HealthCategory[] = [
+  "Activity",
+  "Heart & Vitals",
+  "Body",
+  "Sleep & Recovery",
+  "Nutrition",
+  "Other",
+];
+
+const CATEGORY_EMOJI: Record<HealthCategory, string> = {
+  Activity: "🏃",
+  "Heart & Vitals": "❤️",
+  Body: "⚖️",
+  "Sleep & Recovery": "😴",
+  Nutrition: "🍎",
+  Other: "📊",
+};
+
+export { CATEGORY_ORDER, CATEGORY_EMOJI };
+
+const METRIC_TABLE: Record<string, MetricMeta> = {
+  // Activity
+  Steps:                    { label: "Steps",            emoji: "🚶",  category: "Activity" },
+  StepCount:                { label: "Steps",            emoji: "🚶",  category: "Activity" },
+  DistanceWalkingRunning:   { label: "Distance",         emoji: "📏",  category: "Activity" },
+  ActiveEnergyBurned:       { label: "Active Energy",    emoji: "🔥",  category: "Activity" },
+  BasalEnergyBurned:        { label: "Resting Energy",   emoji: "🛋️", category: "Activity" },
+  AppleExerciseTime:        { label: "Exercise Min",     emoji: "🏋️", category: "Activity" },
+  AppleStandTime:           { label: "Stand Time",       emoji: "🧍",  category: "Activity" },
+  FlightsClimbed:           { label: "Flights Climbed",  emoji: "🪜",  category: "Activity" },
+
+  // Heart & Vitals
+  HeartRate:                     { label: "Heart Rate",   emoji: "❤️",  category: "Heart & Vitals" },
+  RestingHeartRate:               { label: "Resting HR",   emoji: "💗",  category: "Heart & Vitals" },
+  HeartRateVariabilitySDNN:       { label: "HRV",          emoji: "💓",  category: "Heart & Vitals" },
+  OxygenSaturation:               { label: "SpO₂",         emoji: "🫁",  category: "Heart & Vitals" },
+  RespiratoryRate:                 { label: "Resp. Rate",   emoji: "🌬️", category: "Heart & Vitals" },
+  VO2Max:                          { label: "VO₂ Max",      emoji: "🏔️", category: "Heart & Vitals" },
+  BloodPressureSystolic:           { label: "Systolic",     emoji: "🩸",  category: "Heart & Vitals" },
+  SystolicBloodPressure:           { label: "Systolic",     emoji: "🩸",  category: "Heart & Vitals" },
+  BloodPressureDiastolic:          { label: "Diastolic",    emoji: "🩸",  category: "Heart & Vitals" },
+  DiastolicBloodPressure:          { label: "Diastolic",    emoji: "🩸",  category: "Heart & Vitals" },
+
+  // Body
+  BodyMass:       { label: "Weight",         emoji: "⚖️",  category: "Body" },
+  Weight:         { label: "Weight",         emoji: "⚖️",  category: "Body" },
+  BodyMassIndex:  { label: "BMI",            emoji: "📐",  category: "Body" },
+  BodyFatPercentage: { label: "Body Fat %",  emoji: "📉",  category: "Body" },
+  LeanBodyMass:   { label: "Lean Mass",      emoji: "💪",  category: "Body" },
+  Height:         { label: "Height",         emoji: "📏",  category: "Body" },
+  WaistCircumference: { label: "Waist",      emoji: "📐",  category: "Body" },
+
+  // Sleep & Recovery
+  SleepAnalysis:           { label: "Sleep",       emoji: "😴",  category: "Sleep & Recovery" },
+  AppleSleepingWristTemperature: { label: "Sleep Temp", emoji: "🌡️", category: "Sleep & Recovery" },
+
+  // Nutrition
+  DietaryEnergyConsumed:   { label: "Calories In",  emoji: "🍽️", category: "Nutrition" },
+  DietaryProtein:          { label: "Protein",      emoji: "🥩",  category: "Nutrition" },
+  DietaryCarbohydrates:    { label: "Carbs",        emoji: "🍞",  category: "Nutrition" },
+  DietaryFatTotal:         { label: "Fat",          emoji: "🥑",  category: "Nutrition" },
+  DietaryWater:            { label: "Water",        emoji: "💧",  category: "Nutrition" },
+  DietaryCaffeine:         { label: "Caffeine",     emoji: "☕",  category: "Nutrition" },
+};
+
 /** Friendly label + emoji for a HealthKit identifier key. */
 export function healthLabel(key: string): { label: string; emoji: string } {
   const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
-  const table: Record<string, { label: string; emoji: string }> = {
-    Steps: { label: "Steps", emoji: "🚶" },
-    StepCount: { label: "Steps", emoji: "🚶" },
-    DistanceWalkingRunning: { label: "Distance", emoji: "📏" },
-    ActiveEnergyBurned: { label: "Active Energy", emoji: "🔥" },
-    BasalEnergyBurned: { label: "Resting Energy", emoji: "🛋️" },
-    AppleExerciseTime: { label: "Exercise Minutes", emoji: "🏋️" },
-    AppleStandTime: { label: "Stand Time", emoji: "🧍" },
-    HeartRate: { label: "Heart Rate", emoji: "❤️" },
-    RestingHeartRate: { label: "Resting HR", emoji: "💗" },
-    HeartRateVariabilitySDNN: { label: "HRV", emoji: "💓" },
-    FlightsClimbed: { label: "Flights Climbed", emoji: "🪜" },
-    SleepAnalysis: { label: "Sleep", emoji: "😴" },
-  };
-  return table[trimmed] ?? { label: trimmed, emoji: "📊" };
+  const meta = METRIC_TABLE[trimmed];
+  return meta
+    ? { label: meta.label, emoji: meta.emoji }
+    : { label: prettifyKey(trimmed), emoji: "📊" };
+}
+
+/** Return the category for a health key. */
+export function healthCategory(key: string): HealthCategory {
+  const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
+  return METRIC_TABLE[trimmed]?.category ?? "Other";
+}
+
+/** Turn PascalCase into readable text (fallback). */
+function prettifyKey(k: string): string {
+  return k.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
 export interface HealthRollup {
@@ -344,10 +423,28 @@ export interface HealthRollup {
   label: string;
   emoji: string;
   unit: string;
+  category: HealthCategory;
   total: number; // sum across days (for cumulative metrics)
   avg: number; // per-day average over days that had data
   daysWithData: number;
   perDay: { date: string; value: number }[];
+}
+
+/** Blood pressure merged card — combines systolic + diastolic into a single display. */
+export interface BloodPressureRollup {
+  systolic: number;
+  diastolic: number;
+  unit: string;
+  daysWithData: number;
+  perDay: { date: string; systolic: number; diastolic: number }[];
+}
+
+/** A category group with its metrics and optional merged BP card. */
+export interface HealthCategoryGroup {
+  category: HealthCategory;
+  emoji: string;
+  metrics: HealthRollup[];
+  bloodPressure: BloodPressureRollup | null;
 }
 
 /** Roll Apple Health metrics across days into a per-metric summary. */
@@ -379,6 +476,7 @@ export function rollupHealth(days: DailySummary[]): HealthRollup[] {
         label: meta.label,
         emoji: meta.emoji,
         unit: v.unit,
+        category: healthCategory(key),
         total: v.total,
         avg: v.days > 0 ? v.total / v.days : 0,
         daysWithData: v.days,
@@ -386,4 +484,76 @@ export function rollupHealth(days: DailySummary[]): HealthRollup[] {
       };
     })
     .sort((a, b) => b.daysWithData - a.daysWithData);
+}
+
+const BP_SYSTOLIC_KEYS = new Set(["SystolicBloodPressure", "BloodPressureSystolic"]);
+const BP_DIASTOLIC_KEYS = new Set(["DiastolicBloodPressure", "BloodPressureDiastolic"]);
+
+function isBPKey(key: string): boolean {
+  const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
+  return BP_SYSTOLIC_KEYS.has(trimmed) || BP_DIASTOLIC_KEYS.has(trimmed);
+}
+
+function isSystolicKey(key: string): boolean {
+  const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
+  return BP_SYSTOLIC_KEYS.has(trimmed);
+}
+
+/** Group health rollups by category, merging blood pressure into a single reading. */
+export function groupHealthByCategory(metrics: HealthRollup[]): HealthCategoryGroup[] {
+  const catMap = new Map<HealthCategory, HealthRollup[]>();
+
+  // Separate out BP metrics
+  let systolicMetric: HealthRollup | undefined;
+  let diastolicMetric: HealthRollup | undefined;
+
+  for (const m of metrics) {
+    if (isBPKey(m.key)) {
+      if (isSystolicKey(m.key)) systolicMetric = m;
+      else diastolicMetric = m;
+      continue; // Don't add to the normal list
+    }
+    const cat = m.category;
+    if (!catMap.has(cat)) catMap.set(cat, []);
+    catMap.get(cat)!.push(m);
+  }
+
+  // Build blood pressure merged card
+  let bp: BloodPressureRollup | null = null;
+  if (systolicMetric || diastolicMetric) {
+    const sysAvg = systolicMetric?.avg ?? 0;
+    const diaAvg = diastolicMetric?.avg ?? 0;
+    const unit = systolicMetric?.unit ?? diastolicMetric?.unit ?? "mmHg";
+    const days = Math.max(systolicMetric?.daysWithData ?? 0, diastolicMetric?.daysWithData ?? 0);
+
+    // Build per-day pairs
+    const dateSet = new Set<string>();
+    for (const d of systolicMetric?.perDay ?? []) dateSet.add(d.date);
+    for (const d of diastolicMetric?.perDay ?? []) dateSet.add(d.date);
+    const sysMap = new Map(systolicMetric?.perDay.map(d => [d.date, d.value]) ?? []);
+    const diaMap = new Map(diastolicMetric?.perDay.map(d => [d.date, d.value]) ?? []);
+    const perDay = [...dateSet]
+      .sort()
+      .map(date => ({
+        date,
+        systolic: sysMap.get(date) ?? 0,
+        diastolic: diaMap.get(date) ?? 0,
+      }));
+
+    bp = { systolic: sysAvg, diastolic: diaAvg, unit, daysWithData: days, perDay };
+
+    // Ensure Heart & Vitals category exists even if only BP metrics
+    if (!catMap.has("Heart & Vitals")) catMap.set("Heart & Vitals", []);
+  }
+
+  // Build groups in canonical order
+  const bpCategory: HealthCategory = "Heart & Vitals";
+  return CATEGORY_ORDER
+    .filter(cat => catMap.has(cat))
+    .map(cat => ({
+      category: cat,
+      emoji: CATEGORY_EMOJI[cat],
+      metrics: catMap.get(cat)!.sort((a, b) => b.daysWithData - a.daysWithData),
+      bloodPressure: cat === bpCategory ? bp : null,
+    }));
 }

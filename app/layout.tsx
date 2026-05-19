@@ -30,7 +30,7 @@ export default function RootLayout({
         <main className="min-h-screen">{children}</main>
         <footer className="border-t border-border py-8 mt-16">
           <div className="max-w-5xl mx-auto px-6 text-center text-sm text-muted-foreground">
-            Built with Next.js 15 · React Server Components · Real data from Nightscout
+            Built with Next.js 16 · React Server Components · Real data from Nightscout
           </div>
         </footer>
       </body>
