@@ -34,7 +34,6 @@ export async function fetchNightscoutData(hours = 24): Promise<NightscoutReading
     const count = Math.min(hours * 12, 10000); // ~5-min intervals
     const url = `${NIGHTSCOUT_URL}/api/v1/entries/sgv.json?count=${count}`;
     const res = await fetch(url, {
-      next: { revalidate: 300 },
       headers: { Accept: "application/json" },
     });
 
@@ -74,7 +73,7 @@ export async function fetchTreatments(hours = 48): Promise<NightscoutTreatment[]
     const count = Math.min(hours * 4, 10000);
     const url = `${NIGHTSCOUT_URL}/api/v1/treatments.json?count=${count}`;
     const res = await fetch(url, {
-      next: { revalidate: 300 },
+      cache: "no-store",
       headers: { Accept: "application/json" },
     });
     if (!res.ok) return [];

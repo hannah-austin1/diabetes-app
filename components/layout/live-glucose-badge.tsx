@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getLatestGlucose } from "@/lib/client-actions";
 
 interface GlucoseState {
   sgv: number;
@@ -32,14 +33,12 @@ export function LiveGlucoseBadge() {
     let mounted = true;
     async function fetchLatest() {
       try {
-        const res = await fetch("/api/nightscout?hours=1");
-        const json = await res.json();
-        if (!mounted || !json.readings?.length) return;
-        const latest = json.readings[json.readings.length - 1];
+        const result = await getLatestGlucose();
+        if (!mounted || !result) return;
         setData({
-          sgv: latest.sgv,
-          direction: latest.direction ?? "Flat",
-          minutesAgo: Math.round((Date.now() - latest.date) / 60000),
+          sgv: result.sgv,
+          direction: result.direction,
+          minutesAgo: Math.round((Date.now() - result.date) / 60000),
         });
       } catch {
         // silently fail — badge just won't show

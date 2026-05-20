@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { fetchNightscoutData } from "@/lib/nightscout";
+import { connection } from "next/server";
+import { type NightscoutReading } from "@/lib/nightscout";
 import { glucoseColor, glucoseLabel, trendArrow, minutesAgo, fmtMmol } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getNightscoutData } from "@/lib/actions";
 
 export async function DiabetesPreview() {
-  const readings = await fetchNightscoutData(3);
+  await connection();
+  const readings = await getNightscoutData(3);
   const latest = readings[0];
 
   if (!latest) return null;
@@ -60,7 +63,7 @@ export async function DiabetesPreview() {
   );
 }
 
-function MiniSparkline({ readings }: { readings: Awaited<ReturnType<typeof fetchNightscoutData>> }) {
+function MiniSparkline({ readings }: { readings: NightscoutReading[] }) {
   if (readings.length < 2) return null;
 
   const sorted = [...readings].sort((a, b) => a.date - b.date);

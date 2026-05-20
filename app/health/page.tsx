@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  fetchFinchData,
   rollupHealth,
   groupHealthByCategory,
   type HealthRollup,
@@ -15,8 +14,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-export const revalidate = 3600;
+import { getFinchData } from "@/lib/actions";
 
 export const metadata = {
   title: "Health — hgjaustin",
@@ -26,21 +24,21 @@ export const metadata = {
 /* ── Category → glucose colour mapping ───────────────────────────────────── */
 
 const CATEGORY_COLOUR: Record<HealthCategory, string> = {
-  Activity:           "text-glucose-green",
-  "Heart & Vitals":   "text-glucose-red",
-  Body:               "text-glucose-blue",
-  "Sleep & Recovery":  "text-glucose-purple",
-  Nutrition:          "text-glucose-orange",
-  Other:              "text-glucose-yellow",
+  Activity: "text-glucose-green",
+  "Heart & Vitals": "text-glucose-red",
+  Body: "text-glucose-blue",
+  "Sleep & Recovery": "text-glucose-purple",
+  Nutrition: "text-glucose-orange",
+  Other: "text-glucose-yellow",
 };
 
 const CATEGORY_DOT: Record<HealthCategory, string> = {
-  Activity:           "bg-glucose-green",
-  "Heart & Vitals":   "bg-glucose-red",
-  Body:               "bg-glucose-blue",
-  "Sleep & Recovery":  "bg-glucose-purple",
-  Nutrition:          "bg-glucose-orange",
-  Other:              "bg-glucose-yellow",
+  Activity: "bg-glucose-green",
+  "Heart & Vitals": "bg-glucose-red",
+  Body: "bg-glucose-blue",
+  "Sleep & Recovery": "bg-glucose-purple",
+  Nutrition: "bg-glucose-orange",
+  Other: "bg-glucose-yellow",
 };
 
 /* ── Metric card (matches FunStats / StatCard pattern from rest of app) ─── */
@@ -171,7 +169,7 @@ function MetricChart({ m }: { m: HealthRollup }) {
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function HealthPage() {
-  const days = await fetchFinchData();
+  const days = await getFinchData();
   const health = rollupHealth(days);
   const groups = groupHealthByCategory(health);
 
@@ -204,9 +202,8 @@ export default async function HealthPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-6 flex-wrap">
           <div
-            className={`w-3 h-3 rounded-full animate-pulse ${
-              health.length > 0 ? "bg-glucose-green" : "bg-yellow-400"
-            }`}
+            className={`w-3 h-3 rounded-full animate-pulse ${health.length > 0 ? "bg-glucose-green" : "bg-yellow-400"
+              }`}
           />
           <span className="text-sm text-muted-foreground font-mono">
             APPLE HEALTH · {health.length > 0 ? "LIVE FROM FIREBASE" : "WAITING FOR FIRST UPLOAD"}

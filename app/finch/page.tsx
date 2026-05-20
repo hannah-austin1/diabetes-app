@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  fetchFinchData,
   summarizeFinch,
   moodLabel,
   rollupHealth,
@@ -9,11 +8,10 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-
-export const revalidate = 3600;
+import { getFinchData } from "@/lib/actions";
 
 export default async function FinchPage() {
-  const days = await fetchFinchData();
+  const days = await getFinchData();
 
   if (days.length === 0) {
     return (
@@ -199,8 +197,8 @@ export default async function FinchPage() {
                 const heightPct = (score / 5) * 100;
                 const color =
                   score >= 4 ? "#22c55e" :
-                  score === 3 ? "#eab308" :
-                  score === 2 ? "#f97316" : "#ef4444";
+                    score === 3 ? "#eab308" :
+                      score === 2 ? "#f97316" : "#ef4444";
                 return (
                   <div key={d.date} className="flex flex-col items-center gap-1 min-w-[44px]">
                     <div className="h-20 w-full flex items-end">

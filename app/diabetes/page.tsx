@@ -2,22 +2,30 @@ import { Suspense } from "react";
 import { DiabetesStats } from "@/components/diabetes/stats";
 import { RollerCoasterViz } from "@/components/diabetes/roller-coaster-viz";
 import { DiabetesStatsLoading } from "@/components/diabetes/stats-loading";
-import { fetchNightscoutData, fetchTreatments, computeStats, perDayStats, type NightscoutReading } from "@/lib/nightscout";
-import { fetchFinchData, eventsForWindow } from "@/lib/finch";
+import { computeStats, perDayStats, type NightscoutReading } from "@/lib/nightscout";
+import { eventsForWindow } from "@/lib/finch";
 import type { TimelineEvent } from "@/components/diabetes/roller-coaster-viz";
 import { fmtMmol, toMmol } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { WellnessGlucose } from "@/components/diabetes/wellness-glucose";
+import { getFinchData, getNightscoutData, getNightscoutTreatments } from "@/lib/actions";
+import { connection } from "next/server";
 
-export const revalidate = 300;
+export default function DiabetesPage() {
+  return (
+    <Suspense fallback={<DiabetesStatsLoading />}>
+      <DiabetesContent />
+    </Suspense>
+  );
+}
 
-export default async function DiabetesPage() {
-  // Nightscout data + Finch wellness + treatments — all in parallel
+async function DiabetesContent() {
+  await connection();
   const [allReadings, finchDays, treatments] = await Promise.all([
-    fetchNightscoutData(90 * 24),
-    fetchFinchData(),
-    fetchTreatments(48),
+    getNightscoutData(90 * 24),
+    getFinchData(),
+    getNightscoutTreatments(48),
   ]);
 
   const now = Date.now();

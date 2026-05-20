@@ -6,7 +6,6 @@ import { DiabetesPreview } from "@/components/diabetes/preview";
 import { FinchPreview } from "@/components/finch/preview";
 import { HealthPreview } from "@/components/health/preview";
 
-export const revalidate = 300;
 
 export default function Home() {
   return (

@@ -345,14 +345,8 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
       slopes.push(dy / dx);
     }
 
-    // Catmull-Rom spline interpolation for smooth curves
-    function catmullRom(p0v: number, p1v: number, p2v: number, p3v: number, t: number): number {
-      return 0.5 * (
-        2 * p1v +
-        (-p0v + p2v) * t +
-        (2 * p0v - 5 * p1v + 4 * p2v - p3v) * t * t +
-        (-p0v + 3 * p1v - 3 * p2v + p3v) * t * t * t
-      );
+    function lerp(v0: number, v1: number, t: number): number {
+      return v0 + (v1 - v0) * t;
     }
 
     function draw() {
@@ -364,25 +358,29 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
       const idx = Math.floor(floatIdx);
       const frac = floatIdx - idx;
 
-      // Catmull-Rom: use 4 surrounding points for smooth interpolation
-      const i0 = Math.max(0, idx - 1);
       const i1 = Math.min(idx, totalPts - 1);
       const i2 = Math.min(idx + 1, totalPts - 1);
-      const i3 = Math.min(idx + 2, totalPts - 1);
-      const carX = catmullRom(pts[i0].x, pts[i1].x, pts[i2].x, pts[i3].x, frac);
-      const carY = catmullRom(pts[i0].y, pts[i1].y, pts[i2].y, pts[i3].y, frac);
-      const carSgv = Math.round(catmullRom(pts[i0].sgv, pts[i1].sgv, pts[i2].sgv, pts[i3].sgv, frac));
 
-      // Smooth angle using derivative of Catmull-Rom
-      const dx = catmullRom(pts[i0].x, pts[i1].x, pts[i2].x, pts[i3].x, Math.min(1, frac + 0.01)) - carX;
-      const dy = catmullRom(pts[i0].y, pts[i1].y, pts[i2].y, pts[i3].y, Math.min(1, frac + 0.01)) - carY;
-      const angle = Math.atan2(dy, dx);
+      // Linear interpolation to stay exactly on the straight-line track
+      const carX = lerp(pts[i1].x, pts[i2].x, frac);
+      const carY = lerp(pts[i1].y, pts[i2].y, frac);
+      const carSgv = Math.round(lerp(pts[i1].sgv, pts[i2].sgv, frac));
+
+      // Angle from current segment
+      const dx = pts[i2].x - pts[i1].x;
+      const dy = pts[i2].y - pts[i1].y;
+      const angle = dx === 0 ? 0 : Math.atan2(dy, dx);
       const carColor = glucoseColor(Math.max(40, Math.min(400, carSgv)));
 
       // ── Draw car ──
       ctx!.save();
       ctx!.translate(carX, carY);
       ctx!.rotate(angle);
+      
+      // Shift the car UP by 4 pixels (in local rotated coordinates) 
+      // so the wheels sit on top of the visual rails instead of the center line
+      ctx!.translate(0, -4);
+
       ctx!.shadowBlur = 20;
       ctx!.shadowColor = carColor;
       ctx!.fillStyle = carColor;
@@ -545,7 +543,7 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
         ref={bgCanvasRef}
         width={900}
         height={310}
-        className="w-full rounded-xl relative z-10"
+        className="w-full h-auto rounded-xl relative z-10 block"
       />
 
       {/* Car animation canvas (redrawn each frame — lightweight) */}
@@ -553,8 +551,8 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
         ref={carCanvasRef}
         width={900}
         height={310}
-        className="w-full rounded-xl absolute inset-0 z-20 cursor-crosshair m-2"
-        style={{ width: "calc(100% - 16px)", height: "calc(100% - 8px)" }}
+        className="w-full h-full rounded-xl absolute top-2 left-2 z-20 cursor-crosshair"
+        style={{ width: "calc(100% - 16px)", height: "calc(100% - 16px)" }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       />

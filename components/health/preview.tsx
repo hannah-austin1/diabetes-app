@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { fetchFinchData, rollupHealth, healthLabel } from "@/lib/finch";
+import { rollupHealth, healthLabel } from "@/lib/finch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getFinchData } from "@/lib/actions";
 
 export async function HealthPreview() {
-  const days = await fetchFinchData();
+  const days = await getFinchData();
   const health = rollupHealth(days);
   if (health.length === 0) return null;
 

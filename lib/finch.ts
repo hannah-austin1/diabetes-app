@@ -72,7 +72,7 @@ export async function fetchFinchData(): Promise<DailySummary[]> {
     return [];
   }
   try {
-    const res = await fetch(ENDPOINT, { next: { revalidate: 3600 } });
+    const res = await fetch(ENDPOINT);
     if (!res.ok) return [];
     const json: unknown = await res.json();
     if (!json || typeof json !== "object") return [];
@@ -355,47 +355,47 @@ export { CATEGORY_ORDER, CATEGORY_EMOJI };
 
 const METRIC_TABLE: Record<string, MetricMeta> = {
   // Activity
-  Steps:                    { label: "Steps",            emoji: "🚶",  category: "Activity" },
-  StepCount:                { label: "Steps",            emoji: "🚶",  category: "Activity" },
-  DistanceWalkingRunning:   { label: "Distance",         emoji: "📏",  category: "Activity" },
-  ActiveEnergyBurned:       { label: "Active Energy",    emoji: "🔥",  category: "Activity" },
-  BasalEnergyBurned:        { label: "Resting Energy",   emoji: "🛋️", category: "Activity" },
-  AppleExerciseTime:        { label: "Exercise Min",     emoji: "🏋️", category: "Activity" },
-  AppleStandTime:           { label: "Stand Time",       emoji: "🧍",  category: "Activity" },
-  FlightsClimbed:           { label: "Flights Climbed",  emoji: "🪜",  category: "Activity" },
+  Steps: { label: "Steps", emoji: "🚶", category: "Activity" },
+  StepCount: { label: "Steps", emoji: "🚶", category: "Activity" },
+  DistanceWalkingRunning: { label: "Distance", emoji: "📏", category: "Activity" },
+  ActiveEnergyBurned: { label: "Active Energy", emoji: "🔥", category: "Activity" },
+  BasalEnergyBurned: { label: "Resting Energy", emoji: "🛋️", category: "Activity" },
+  AppleExerciseTime: { label: "Exercise Min", emoji: "🏋️", category: "Activity" },
+  AppleStandTime: { label: "Stand Time", emoji: "🧍", category: "Activity" },
+  FlightsClimbed: { label: "Flights Climbed", emoji: "🪜", category: "Activity" },
 
   // Heart & Vitals
-  HeartRate:                     { label: "Heart Rate",   emoji: "❤️",  category: "Heart & Vitals" },
-  RestingHeartRate:               { label: "Resting HR",   emoji: "💗",  category: "Heart & Vitals" },
-  HeartRateVariabilitySDNN:       { label: "HRV",          emoji: "💓",  category: "Heart & Vitals" },
-  OxygenSaturation:               { label: "SpO₂",         emoji: "🫁",  category: "Heart & Vitals" },
-  RespiratoryRate:                 { label: "Resp. Rate",   emoji: "🌬️", category: "Heart & Vitals" },
-  VO2Max:                          { label: "VO₂ Max",      emoji: "🏔️", category: "Heart & Vitals" },
-  BloodPressureSystolic:           { label: "Systolic",     emoji: "🩸",  category: "Heart & Vitals" },
-  SystolicBloodPressure:           { label: "Systolic",     emoji: "🩸",  category: "Heart & Vitals" },
-  BloodPressureDiastolic:          { label: "Diastolic",    emoji: "🩸",  category: "Heart & Vitals" },
-  DiastolicBloodPressure:          { label: "Diastolic",    emoji: "🩸",  category: "Heart & Vitals" },
+  HeartRate: { label: "Heart Rate", emoji: "❤️", category: "Heart & Vitals" },
+  RestingHeartRate: { label: "Resting HR", emoji: "💗", category: "Heart & Vitals" },
+  HeartRateVariabilitySDNN: { label: "HRV", emoji: "💓", category: "Heart & Vitals" },
+  OxygenSaturation: { label: "SpO₂", emoji: "🫁", category: "Heart & Vitals" },
+  RespiratoryRate: { label: "Resp. Rate", emoji: "🌬️", category: "Heart & Vitals" },
+  VO2Max: { label: "VO₂ Max", emoji: "🏔️", category: "Heart & Vitals" },
+  BloodPressureSystolic: { label: "Systolic", emoji: "🩸", category: "Heart & Vitals" },
+  SystolicBloodPressure: { label: "Systolic", emoji: "🩸", category: "Heart & Vitals" },
+  BloodPressureDiastolic: { label: "Diastolic", emoji: "🩸", category: "Heart & Vitals" },
+  DiastolicBloodPressure: { label: "Diastolic", emoji: "🩸", category: "Heart & Vitals" },
 
   // Body
-  BodyMass:       { label: "Weight",         emoji: "⚖️",  category: "Body" },
-  Weight:         { label: "Weight",         emoji: "⚖️",  category: "Body" },
-  BodyMassIndex:  { label: "BMI",            emoji: "📐",  category: "Body" },
-  BodyFatPercentage: { label: "Body Fat %",  emoji: "📉",  category: "Body" },
-  LeanBodyMass:   { label: "Lean Mass",      emoji: "💪",  category: "Body" },
-  Height:         { label: "Height",         emoji: "📏",  category: "Body" },
-  WaistCircumference: { label: "Waist",      emoji: "📐",  category: "Body" },
+  BodyMass: { label: "Weight", emoji: "⚖️", category: "Body" },
+  Weight: { label: "Weight", emoji: "⚖️", category: "Body" },
+  BodyMassIndex: { label: "BMI", emoji: "📐", category: "Body" },
+  BodyFatPercentage: { label: "Body Fat %", emoji: "📉", category: "Body" },
+  LeanBodyMass: { label: "Lean Mass", emoji: "💪", category: "Body" },
+  Height: { label: "Height", emoji: "📏", category: "Body" },
+  WaistCircumference: { label: "Waist", emoji: "📐", category: "Body" },
 
   // Sleep & Recovery
-  SleepAnalysis:           { label: "Sleep",       emoji: "😴",  category: "Sleep & Recovery" },
+  SleepAnalysis: { label: "Sleep", emoji: "😴", category: "Sleep & Recovery" },
   AppleSleepingWristTemperature: { label: "Sleep Temp", emoji: "🌡️", category: "Sleep & Recovery" },
 
   // Nutrition
-  DietaryEnergyConsumed:   { label: "Calories In",  emoji: "🍽️", category: "Nutrition" },
-  DietaryProtein:          { label: "Protein",      emoji: "🥩",  category: "Nutrition" },
-  DietaryCarbohydrates:    { label: "Carbs",        emoji: "🍞",  category: "Nutrition" },
-  DietaryFatTotal:         { label: "Fat",          emoji: "🥑",  category: "Nutrition" },
-  DietaryWater:            { label: "Water",        emoji: "💧",  category: "Nutrition" },
-  DietaryCaffeine:         { label: "Caffeine",     emoji: "☕",  category: "Nutrition" },
+  DietaryEnergyConsumed: { label: "Calories In", emoji: "🍽️", category: "Nutrition" },
+  DietaryProtein: { label: "Protein", emoji: "🥩", category: "Nutrition" },
+  DietaryCarbohydrates: { label: "Carbs", emoji: "🍞", category: "Nutrition" },
+  DietaryFatTotal: { label: "Fat", emoji: "🥑", category: "Nutrition" },
+  DietaryWater: { label: "Water", emoji: "💧", category: "Nutrition" },
+  DietaryCaffeine: { label: "Caffeine", emoji: "☕", category: "Nutrition" },
 };
 
 /** Friendly label + emoji for a HealthKit identifier key. */

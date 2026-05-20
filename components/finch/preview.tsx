@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { fetchFinchData, summarizeFinch, moodLabel } from "@/lib/finch";
+import { summarizeFinch, moodLabel, type DailySummary } from "@/lib/finch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getFinchData } from "@/lib/actions";
 
 export async function FinchPreview() {
-  const days = await fetchFinchData();
+  const days = await getFinchData();
   if (days.length === 0) return null;
 
   const s = summarizeFinch(days);
@@ -65,7 +66,7 @@ export async function FinchPreview() {
 function GoalSparkbars({
   days,
 }: {
-  days: Awaited<ReturnType<typeof fetchFinchData>>;
+  days: DailySummary[];
 }) {
   if (days.length === 0) return null;
   const max = Math.max(...days.map((d) => d.completed_goals_count), 1);
