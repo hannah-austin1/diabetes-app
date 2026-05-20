@@ -10,7 +10,7 @@ import {
 // ── Finch (cached remotely for 1 day — shared across all Vercel instances) ───
 
 export async function getFinchData(): Promise<DailySummary[]> {
-  "use cache: remote";
+  "use cache";
   cacheLife("days");
   return fetchFinchData();
 }
@@ -20,7 +20,7 @@ export async function getFinchData(): Promise<DailySummary[]> {
 export async function getNightscoutData(
   hours = 48,
 ): Promise<NightscoutReading[]> {
-  "use cache: remote";
+  "use cache";
   cacheLife("minutes");
   return fetchNightscoutData(hours);
 }
@@ -28,7 +28,7 @@ export async function getNightscoutData(
 export async function getNightscoutTreatments(
   hours = 48,
 ): Promise<NightscoutTreatment[]> {
-  "use cache: remote";
+  "use cache";
   cacheLife("minutes");
   return fetchTreatments(hours);
 }
