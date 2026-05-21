@@ -8,10 +8,16 @@ import {
 } from "@/lib/nightscout";
 
 // ── Finch (cached remotely for 1 day — shared across all Vercel instances) ───
+// The `dateKey` argument is today's date in YYYY-MM-DD format. Because "use cache"
+// uses function arguments as the cache key, a new cache entry is created each
+// calendar day — yesterday's stale entry is simply never hit again.
 
-export async function getFinchData(): Promise<DailySummary[]> {
+export async function getFinchData(
+  dateKey: string = new Date().toISOString().slice(0, 10),
+): Promise<DailySummary[]> {
   "use cache";
-  cacheLife("hours");
+  cacheLife("days");
+  void dateKey; // only used as a cache-key discriminator
   return fetchFinchData();
 }
 

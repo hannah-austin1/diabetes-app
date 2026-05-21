@@ -2,8 +2,7 @@
 // `getFinchData`. The function returns one aggregated DailySummary per
 // calendar day (see attached_assets/types_*.ts for the canonical shape).
 
-const ENDPOINT =
-  process.env.FINCH_ENDPOINT
+const ENDPOINT = process.env.FINCH_ENDPOINT;
 
 // ── Wire types ────────────────────────────────────────────────────────────────
 
@@ -62,17 +61,18 @@ function isValidDay(x: unknown): x is DailySummary {
     Array.isArray(d.completed_reflections) &&
     typeof d.good_vibes_count === "number" &&
     typeof d.breathing_sessions_count === "number" &&
-    typeof d.health === "object" && d.health !== null
+    typeof d.health === "object" &&
+    d.health !== null
   );
 }
 
 export async function fetchFinchData(): Promise<DailySummary[]> {
   if (!ENDPOINT) {
-    console.log('No Finch endpoint found');
+    console.log("No Finch endpoint found");
     return [];
   }
   try {
-    const res = await fetch(ENDPOINT);
+    const res = await fetch(ENDPOINT, { cache: "no-store" });
     if (!res.ok) return [];
     const json: unknown = await res.json();
     if (!json || typeof json !== "object") return [];
@@ -144,22 +144,25 @@ export function summarizeFinch(days: DailySummary[]): FinchSummary {
   const totalCompleted = days.reduce((s, d) => s + d.completed_goals_count, 0);
   const totalScheduled = days.reduce((s, d) => s + d.scheduled_goals_count, 0);
   const totalGoodVibes = days.reduce((s, d) => s + d.good_vibes_count, 0);
-  const totalBreathing = days.reduce((s, d) => s + d.breathing_sessions_count, 0);
+  const totalBreathing = days.reduce(
+    (s, d) => s + d.breathing_sessions_count,
+    0,
+  );
   const totalReflections = days.reduce(
     (s, d) => s + d.completed_reflections_count,
     0,
   );
 
-  const moodDays = days.filter((d) => d.mood && typeof d.mood.score === "number");
+  const moodDays = days.filter(
+    (d) => d.mood && typeof d.mood.score === "number",
+  );
   const avgMoodScore =
     moodDays.length > 0
       ? moodDays.reduce((s, d) => s + (d.mood!.score ?? 0), 0) / moodDays.length
       : null;
 
   // streaks: consecutive calendar days with any wellness signal logged
-  const checkInDates = new Set(
-    days.filter(isActiveDay).map((d) => d.date),
-  );
+  const checkInDates = new Set(days.filter(isActiveDay).map((d) => d.date));
   const sortedDates = [...checkInDates].sort();
   let longest = 0;
   let running = 0;
@@ -229,8 +232,7 @@ export function summarizeFinch(days: DailySummary[]): FinchSummary {
     daysWithCheckIn,
     totalGoalsCompleted: totalCompleted,
     totalGoalsScheduled: totalScheduled,
-    completionRate:
-      totalScheduled > 0 ? totalCompleted / totalScheduled : 0,
+    completionRate: totalScheduled > 0 ? totalCompleted / totalScheduled : 0,
     totalGoodVibes,
     totalBreathingSessions: totalBreathing,
     totalReflections,
@@ -282,7 +284,7 @@ export function eventsForWindow(
   for (const day of days) {
     // Day boundaries for distributing goals without individual timestamps
     const dayStart = Date.parse(day.date + "T08:00:00"); // 8am
-    const dayEnd = Date.parse(day.date + "T21:00:00");   // 9pm
+    const dayEnd = Date.parse(day.date + "T21:00:00"); // 9pm
     if (isNaN(dayStart)) continue;
 
     // Skip days entirely outside the window
@@ -294,9 +296,10 @@ export function eventsForWindow(
       let ts = goalTs(g);
       // If no per-goal timestamp, distribute evenly across the day
       if (ts === null) {
-        ts = goals.length > 1
-          ? dayStart + (i / (goals.length - 1)) * (dayEnd - dayStart)
-          : dayStart + (dayEnd - dayStart) / 2;
+        ts =
+          goals.length > 1
+            ? dayStart + (i / (goals.length - 1)) * (dayEnd - dayStart)
+            : dayStart + (dayEnd - dayStart) / 2;
       }
       if (ts >= sinceTs && ts <= untilTs) {
         out.push({ ts, kind: "goal", label: g.text, emoji: g.emoji });
@@ -357,24 +360,72 @@ const METRIC_TABLE: Record<string, MetricMeta> = {
   // Activity
   Steps: { label: "Steps", emoji: "🚶", category: "Activity" },
   StepCount: { label: "Steps", emoji: "🚶", category: "Activity" },
-  DistanceWalkingRunning: { label: "Distance", emoji: "📏", category: "Activity" },
-  ActiveEnergyBurned: { label: "Active Energy", emoji: "🔥", category: "Activity" },
-  BasalEnergyBurned: { label: "Resting Energy", emoji: "🛋️", category: "Activity" },
-  AppleExerciseTime: { label: "Exercise Min", emoji: "🏋️", category: "Activity" },
+  DistanceWalkingRunning: {
+    label: "Distance",
+    emoji: "📏",
+    category: "Activity",
+  },
+  ActiveEnergyBurned: {
+    label: "Active Energy",
+    emoji: "🔥",
+    category: "Activity",
+  },
+  BasalEnergyBurned: {
+    label: "Resting Energy",
+    emoji: "🛋️",
+    category: "Activity",
+  },
+  AppleExerciseTime: {
+    label: "Exercise Min",
+    emoji: "🏋️",
+    category: "Activity",
+  },
   AppleStandTime: { label: "Stand Time", emoji: "🧍", category: "Activity" },
-  FlightsClimbed: { label: "Flights Climbed", emoji: "🪜", category: "Activity" },
+  FlightsClimbed: {
+    label: "Flights Climbed",
+    emoji: "🪜",
+    category: "Activity",
+  },
 
   // Heart & Vitals
   HeartRate: { label: "Heart Rate", emoji: "❤️", category: "Heart & Vitals" },
-  RestingHeartRate: { label: "Resting HR", emoji: "💗", category: "Heart & Vitals" },
-  HeartRateVariabilitySDNN: { label: "HRV", emoji: "💓", category: "Heart & Vitals" },
+  RestingHeartRate: {
+    label: "Resting HR",
+    emoji: "💗",
+    category: "Heart & Vitals",
+  },
+  HeartRateVariabilitySDNN: {
+    label: "HRV",
+    emoji: "💓",
+    category: "Heart & Vitals",
+  },
   OxygenSaturation: { label: "SpO₂", emoji: "🫁", category: "Heart & Vitals" },
-  RespiratoryRate: { label: "Resp. Rate", emoji: "🌬️", category: "Heart & Vitals" },
+  RespiratoryRate: {
+    label: "Resp. Rate",
+    emoji: "🌬️",
+    category: "Heart & Vitals",
+  },
   VO2Max: { label: "VO₂ Max", emoji: "🏔️", category: "Heart & Vitals" },
-  BloodPressureSystolic: { label: "Systolic", emoji: "🩸", category: "Heart & Vitals" },
-  SystolicBloodPressure: { label: "Systolic", emoji: "🩸", category: "Heart & Vitals" },
-  BloodPressureDiastolic: { label: "Diastolic", emoji: "🩸", category: "Heart & Vitals" },
-  DiastolicBloodPressure: { label: "Diastolic", emoji: "🩸", category: "Heart & Vitals" },
+  BloodPressureSystolic: {
+    label: "Systolic",
+    emoji: "🩸",
+    category: "Heart & Vitals",
+  },
+  SystolicBloodPressure: {
+    label: "Systolic",
+    emoji: "🩸",
+    category: "Heart & Vitals",
+  },
+  BloodPressureDiastolic: {
+    label: "Diastolic",
+    emoji: "🩸",
+    category: "Heart & Vitals",
+  },
+  DiastolicBloodPressure: {
+    label: "Diastolic",
+    emoji: "🩸",
+    category: "Heart & Vitals",
+  },
 
   // Body
   BodyMass: { label: "Weight", emoji: "⚖️", category: "Body" },
@@ -387,10 +438,18 @@ const METRIC_TABLE: Record<string, MetricMeta> = {
 
   // Sleep & Recovery
   SleepAnalysis: { label: "Sleep", emoji: "😴", category: "Sleep & Recovery" },
-  AppleSleepingWristTemperature: { label: "Sleep Temp", emoji: "🌡️", category: "Sleep & Recovery" },
+  AppleSleepingWristTemperature: {
+    label: "Sleep Temp",
+    emoji: "🌡️",
+    category: "Sleep & Recovery",
+  },
 
   // Nutrition
-  DietaryEnergyConsumed: { label: "Calories In", emoji: "🍽️", category: "Nutrition" },
+  DietaryEnergyConsumed: {
+    label: "Calories In",
+    emoji: "🍽️",
+    category: "Nutrition",
+  },
   DietaryProtein: { label: "Protein", emoji: "🥩", category: "Nutrition" },
   DietaryCarbohydrates: { label: "Carbs", emoji: "🍞", category: "Nutrition" },
   DietaryFatTotal: { label: "Fat", emoji: "🥑", category: "Nutrition" },
@@ -451,7 +510,12 @@ export interface HealthCategoryGroup {
 export function rollupHealth(days: DailySummary[]): HealthRollup[] {
   const byKey = new Map<
     string,
-    { unit: string; total: number; days: number; perDay: { date: string; value: number }[] }
+    {
+      unit: string;
+      total: number;
+      days: number;
+      perDay: { date: string; value: number }[];
+    }
   >();
   for (const day of days) {
     for (const [key, m] of Object.entries(day.health ?? {})) {
@@ -486,8 +550,14 @@ export function rollupHealth(days: DailySummary[]): HealthRollup[] {
     .sort((a, b) => b.daysWithData - a.daysWithData);
 }
 
-const BP_SYSTOLIC_KEYS = new Set(["SystolicBloodPressure", "BloodPressureSystolic"]);
-const BP_DIASTOLIC_KEYS = new Set(["DiastolicBloodPressure", "BloodPressureDiastolic"]);
+const BP_SYSTOLIC_KEYS = new Set([
+  "SystolicBloodPressure",
+  "BloodPressureSystolic",
+]);
+const BP_DIASTOLIC_KEYS = new Set([
+  "DiastolicBloodPressure",
+  "BloodPressureDiastolic",
+]);
 
 function isBPKey(key: string): boolean {
   const trimmed = key.replace(/^HKQuantityTypeIdentifier/, "");
@@ -500,7 +570,9 @@ function isSystolicKey(key: string): boolean {
 }
 
 /** Group health rollups by category, merging blood pressure into a single reading. */
-export function groupHealthByCategory(metrics: HealthRollup[]): HealthCategoryGroup[] {
+export function groupHealthByCategory(
+  metrics: HealthRollup[],
+): HealthCategoryGroup[] {
   const catMap = new Map<HealthCategory, HealthRollup[]>();
 
   // Separate out BP metrics
@@ -524,23 +596,34 @@ export function groupHealthByCategory(metrics: HealthRollup[]): HealthCategoryGr
     const sysAvg = systolicMetric?.avg ?? 0;
     const diaAvg = diastolicMetric?.avg ?? 0;
     const unit = systolicMetric?.unit ?? diastolicMetric?.unit ?? "mmHg";
-    const days = Math.max(systolicMetric?.daysWithData ?? 0, diastolicMetric?.daysWithData ?? 0);
+    const days = Math.max(
+      systolicMetric?.daysWithData ?? 0,
+      diastolicMetric?.daysWithData ?? 0,
+    );
 
     // Build per-day pairs
     const dateSet = new Set<string>();
     for (const d of systolicMetric?.perDay ?? []) dateSet.add(d.date);
     for (const d of diastolicMetric?.perDay ?? []) dateSet.add(d.date);
-    const sysMap = new Map(systolicMetric?.perDay.map(d => [d.date, d.value]) ?? []);
-    const diaMap = new Map(diastolicMetric?.perDay.map(d => [d.date, d.value]) ?? []);
-    const perDay = [...dateSet]
-      .sort()
-      .map(date => ({
-        date,
-        systolic: sysMap.get(date) ?? 0,
-        diastolic: diaMap.get(date) ?? 0,
-      }));
+    const sysMap = new Map(
+      systolicMetric?.perDay.map((d) => [d.date, d.value]) ?? [],
+    );
+    const diaMap = new Map(
+      diastolicMetric?.perDay.map((d) => [d.date, d.value]) ?? [],
+    );
+    const perDay = [...dateSet].sort().map((date) => ({
+      date,
+      systolic: sysMap.get(date) ?? 0,
+      diastolic: diaMap.get(date) ?? 0,
+    }));
 
-    bp = { systolic: sysAvg, diastolic: diaAvg, unit, daysWithData: days, perDay };
+    bp = {
+      systolic: sysAvg,
+      diastolic: diaAvg,
+      unit,
+      daysWithData: days,
+      perDay,
+    };
 
     // Ensure Heart & Vitals category exists even if only BP metrics
     if (!catMap.has("Heart & Vitals")) catMap.set("Heart & Vitals", []);
@@ -548,12 +631,10 @@ export function groupHealthByCategory(metrics: HealthRollup[]): HealthCategoryGr
 
   // Build groups in canonical order
   const bpCategory: HealthCategory = "Heart & Vitals";
-  return CATEGORY_ORDER
-    .filter(cat => catMap.has(cat))
-    .map(cat => ({
-      category: cat,
-      emoji: CATEGORY_EMOJI[cat],
-      metrics: catMap.get(cat)!.sort((a, b) => b.daysWithData - a.daysWithData),
-      bloodPressure: cat === bpCategory ? bp : null,
-    }));
+  return CATEGORY_ORDER.filter((cat) => catMap.has(cat)).map((cat) => ({
+    category: cat,
+    emoji: CATEGORY_EMOJI[cat],
+    metrics: catMap.get(cat)!.sort((a, b) => b.daysWithData - a.daysWithData),
+    bloodPressure: cat === bpCategory ? bp : null,
+  }));
 }
