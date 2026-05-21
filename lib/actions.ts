@@ -11,7 +11,7 @@ import {
 
 export async function getFinchData(): Promise<DailySummary[]> {
   "use cache";
-  cacheLife("days");
+  cacheLife("hours");
   return fetchFinchData();
 }
 
