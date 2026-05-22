@@ -52,18 +52,20 @@ interface FinchResponse {
 function isValidDay(x: unknown): x is DailySummary {
   if (!x || typeof x !== "object") return false;
   const d = x as Record<string, unknown>;
-  return (
-    typeof d.date === "string" &&
-    /^\d{4}-\d{2}-\d{2}$/.test(d.date) &&
-    typeof d.scheduled_goals_count === "number" &&
-    typeof d.completed_goals_count === "number" &&
-    Array.isArray(d.completed_goals) &&
-    Array.isArray(d.completed_reflections) &&
-    typeof d.good_vibes_count === "number" &&
-    typeof d.breathing_sessions_count === "number" &&
-    typeof d.health === "object" &&
-    d.health !== null
-  );
+  if (typeof d.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(d.date)) {
+    return false;
+  }
+  // Default missing fields so partial days (health-only, finch-only, etc.) are kept
+  d.scheduled_goals_count ??= 0;
+  d.completed_goals_count ??= 0;
+  d.completed_goals ??= [];
+  d.completed_reflections ??= [];
+  d.completed_reflections_count ??= 0;
+  d.good_vibes_count ??= 0;
+  d.breathing_sessions_count ??= 0;
+  d.health ??= {};
+  d.mood ??= null;
+  return true;
 }
 
 export async function fetchFinchData(): Promise<DailySummary[]> {
