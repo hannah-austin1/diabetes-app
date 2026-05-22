@@ -1,5 +1,4 @@
-const NIGHTSCOUT_URL =
-  process.env.NIGHTSCOUT_URL
+const NIGHTSCOUT_URL = process.env.NIGHTSCOUT_URL;
 
 export interface NightscoutReading {
   _id: string;
@@ -16,24 +15,27 @@ export interface NightscoutStats {
   a1c: number;
   avgGlucose: number; // mg/dL
   timeInRange: number; // %
-  timeAbove: number;   // %
-  timeBelow: number;   // %
-  stdDev: number;      // mg/dL
+  timeAbove: number; // %
+  timeBelow: number; // %
+  stdDev: number; // mg/dL
   totalReadings: number;
-  currentSgv: number | null;    // mg/dL
+  currentSgv: number | null; // mg/dL
   currentTrend: string | null;
   currentDate: number | null;
 }
 
-export async function fetchNightscoutData(hours = 24): Promise<NightscoutReading[]> {
+export async function fetchNightscoutData(
+  hours = 24,
+): Promise<NightscoutReading[]> {
   if (!NIGHTSCOUT_URL) {
-    console.log('No Nightscout URL found');
+    console.log("No Nightscout URL found");
     return getMockReadings(hours);
   }
   try {
     const count = Math.min(hours * 12, 10000); // ~5-min intervals
     const url = `${NIGHTSCOUT_URL}/api/v1/entries/sgv.json?count=${count}`;
     const res = await fetch(url, {
+      cache: "no-store",
       headers: { Accept: "application/json" },
     });
 
@@ -67,7 +69,9 @@ export interface NightscoutTreatment {
  * Fetch treatments (carbs, boluses) from Nightscout.
  * Returns only entries that have carbs or insulin values.
  */
-export async function fetchTreatments(hours = 48): Promise<NightscoutTreatment[]> {
+export async function fetchTreatments(
+  hours = 48,
+): Promise<NightscoutTreatment[]> {
   if (!NIGHTSCOUT_URL) return [];
   try {
     const count = Math.min(hours * 4, 10000);
@@ -82,7 +86,9 @@ export async function fetchTreatments(hours = 48): Promise<NightscoutTreatment[]
 
     // Filter to only carb/bolus entries
     return (data as NightscoutTreatment[]).filter(
-      (t) => (t.carbs != null && t.carbs > 0) || (t.insulin != null && t.insulin > 0),
+      (t) =>
+        (t.carbs != null && t.carbs > 0) ||
+        (t.insulin != null && t.insulin > 0),
     );
   } catch {
     return [];
@@ -98,7 +104,8 @@ export function computeStats(readings: NightscoutReading[]): NightscoutStats {
   const above = readings.filter((r) => r.sgv > 180).length;
   const below = readings.filter((r) => r.sgv < 70).length;
   const total = readings.length;
-  const variance = values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length;
+  const variance =
+    values.reduce((s, v) => s + (v - avg) ** 2, 0) / values.length;
   const a1c = (avg + 46.7) / 28.7;
   const latest = readings[0];
 
@@ -118,9 +125,16 @@ export function computeStats(readings: NightscoutReading[]): NightscoutStats {
 
 function getDefaultStats(): NightscoutStats {
   return {
-    a1c: 0, avgGlucose: 0, timeInRange: 0, timeAbove: 0,
-    timeBelow: 0, stdDev: 0, totalReadings: 0,
-    currentSgv: null, currentTrend: null, currentDate: null,
+    a1c: 0,
+    avgGlucose: 0,
+    timeInRange: 0,
+    timeAbove: 0,
+    timeBelow: 0,
+    stdDev: 0,
+    totalReadings: 0,
+    currentSgv: null,
+    currentTrend: null,
+    currentDate: null,
   };
 }
 
@@ -204,7 +218,10 @@ export function perDayStats(
     const dayMs = 24 * 60 * 60 * 1000;
     for (const r of sorted) {
       const offset = Math.max(0, Math.min(dayMs - 1, r.date - startTs));
-      const idx = Math.min(bucketCount - 1, Math.floor((offset / dayMs) * bucketCount));
+      const idx = Math.min(
+        bucketCount - 1,
+        Math.floor((offset / dayMs) * bucketCount),
+      );
       buckets[idx].sum += r.sgv;
       buckets[idx].n++;
     }
@@ -242,9 +259,14 @@ function getMockReadings(hours: number): NightscoutReading[] {
       10 * Math.sin(i * 0.31);
     const sgv = Math.max(55, Math.min(350, Math.round(120 + wave)));
     readings.push({
-      _id: `mock_${i}`, sgv, date: t,
+      _id: `mock_${i}`,
+      sgv,
+      date: t,
       dateString: new Date(t).toISOString(),
-      trend: 4, direction: "Flat", device: "mock", type: "sgv",
+      trend: 4,
+      direction: "Flat",
+      device: "mock",
+      type: "sgv",
     });
   }
 
