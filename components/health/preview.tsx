@@ -4,8 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getFinchData } from "@/lib/actions";
 import { ArrowRight } from "lucide-react";
+import { connection } from "next/server";
 
 export async function HealthPreview() {
+  await connection();
   const allDays = await getFinchData();
   const today = new Date().toISOString().slice(0, 10);
   const days = allDays.filter((d) => d.date < today);

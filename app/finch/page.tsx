@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { getFinchData } from "@/lib/actions";
 import { Suspense } from "react";
+import { connection } from "next/server";
 
 export default function FinchPage() {
   return (
@@ -26,6 +27,7 @@ export default function FinchPage() {
 }
 
 async function FinchContent() {
+  await connection();
   const allDays = await getFinchData();
   const today = new Date().toISOString().slice(0, 10);
   const days = allDays.filter((d) => d.date < today);
