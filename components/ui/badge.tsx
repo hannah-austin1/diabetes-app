@@ -3,18 +3,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border-2 px-3 py-1 text-xs font-semibold transition-all duration-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground",
-        secondary: "border-transparent bg-secondary text-secondary-foreground",
+        default: "border-transparent bg-primary text-primary-foreground shadow-sm",
+        secondary: "border-border bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground",
-        outline: "text-foreground border-border",
-        success: "border-transparent bg-glucose-green/20 text-glucose-green border-glucose-green/30",
-        warning: "border-transparent bg-glucose-yellow/20 text-glucose-yellow border-glucose-yellow/30",
-        danger: "border-transparent bg-glucose-red/20 text-glucose-red border-glucose-red/30",
-        info: "border-transparent bg-glucose-blue/20 text-glucose-blue border-glucose-blue/30",
+        outline: "text-foreground border-border bg-card/50 hover:bg-card",
+        success: "border-emerald-400/40 bg-emerald-100 text-emerald-700",
+        warning: "border-amber-400/40 bg-amber-100 text-amber-700",
+        danger: "border-red-400/40 bg-red-100 text-red-700",
+        info: "border-blue-400/40 bg-blue-100 text-blue-700",
       },
     },
     defaultVariants: {

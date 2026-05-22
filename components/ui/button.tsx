@@ -4,16 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-border bg-transparent hover:bg-secondary hover:text-foreground",
+          "border-2 border-border bg-transparent hover:bg-secondary hover:text-foreground hover:border-primary/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
@@ -21,15 +21,15 @@ const buttonVariants = cva(
         link:
           "text-primary underline-offset-4 hover:underline",
         glass:
-          "bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10 hover:text-foreground hover:border-white/20",
+          "bg-card/80 border-2 border-border text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/30 backdrop-blur-sm hover:-translate-y-0.5 hover:shadow-lg",
         glow:
-          "bg-glucose-green/10 border border-glucose-green/30 text-glucose-green hover:bg-glucose-green/20 hover:border-glucose-green/50",
+          "bg-glucose-green/10 border-2 border-glucose-green/40 text-glucose-green hover:bg-glucose-green/20 hover:border-glucose-green/60 shadow-lg shadow-glucose-green/10 hover:shadow-xl hover:shadow-glucose-green/20 hover:-translate-y-0.5",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-7 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-xl px-6",
-        icon: "h-9 w-9",
+        default: "h-10 px-5 py-2",
+        sm: "h-8 rounded-lg px-4 text-xs",
+        lg: "h-12 rounded-2xl px-8 text-base",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {

@@ -24,37 +24,60 @@ export async function DiabetesPreview() {
     : label === "LOW" || label === "URGENT LOW" ? "danger"
     : "warning";
 
+  const moodEmoji = 
+    label === "IN RANGE" ? "😊" 
+    : label === "LOW" || label === "URGENT LOW" ? "😰"
+    : "😅";
+
   return (
     <section>
-      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">
-        Live Glucose
-      </h2>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-3xl">🩸</span>
+        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+          Live Glucose
+        </h2>
+      </div>
       <Link href="/diabetes" className="block">
-        <Card className="hover:border-border/80 hover:bg-card/80 transition-all duration-300 group cursor-pointer">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-baseline gap-3 mb-2">
-                  <span className="text-6xl font-black font-mono" style={{ color }}>
-                    {mmol}
-                  </span>
-                  <span className="text-3xl font-bold" style={{ color }}>{arrow}</span>
-                  <span className="text-sm text-muted-foreground self-end mb-1">mmol/L</span>
+        <Card className="hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group cursor-pointer card-interactive overflow-hidden">
+          <CardContent className="p-0">
+            {/* Gradient header based on glucose status */}
+            <div className={`p-6 bg-gradient-to-br ${
+              label === "IN RANGE" 
+                ? "from-emerald-500/10 to-teal-500/10" 
+                : label === "LOW" || label === "URGENT LOW"
+                ? "from-orange-500/10 to-red-500/10"
+                : "from-amber-500/10 to-orange-500/10"
+            }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <span className="text-6xl font-black font-mono" style={{ color }}>
+                      {mmol}
+                    </span>
+                    <span className="text-3xl font-bold" style={{ color }}>{arrow}</span>
+                    <span className="text-sm text-muted-foreground self-end mb-1">mmol/L</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={labelVariant as "success" | "warning" | "danger"}>{label}</Badge>
+                    <span className="text-xs text-muted-foreground">{ago}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={labelVariant as "success" | "warning" | "danger"}>{label}</Badge>
-                  <span className="text-xs text-muted-foreground">{ago}</span>
+                <div className="text-right flex flex-col items-end gap-2">
+                  <span className="text-5xl">{moodEmoji}</span>
+                  <div className="text-sm text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1">
+                    <span>View dashboard</span>
+                    <span className="group-hover:translate-x-1 transition-transform">👉</span>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground mb-2 group-hover:text-foreground transition-colors">
-                  View full dashboard →
-                </div>
-                <div className="text-xs text-muted-foreground font-mono">24h roller coaster</div>
               </div>
             </div>
-            <div className="mt-6">
+            
+            {/* Sparkline */}
+            <div className="p-6 bg-card">
               <MiniSparkline readings={readings} />
+              <div className="mt-3 text-xs text-muted-foreground font-mono text-center">
+                🎢 24h roller coaster visualization
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -84,19 +107,29 @@ function MiniSparkline({ readings }: { readings: NightscoutReading[] }) {
 
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-12">
+      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-16">
+        {/* In-range zone */}
         <rect
           x={0}
           y={h - ((180 - min) / range) * h}
           width={w}
           height={((180 - 70) / range) * h}
-          fill="rgba(34, 197, 94, 0.06)"
+          fill="rgba(16, 185, 129, 0.08)"
+          rx="2"
         />
+        {/* Gradient line */}
+        <defs>
+          <linearGradient id="glucoseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="50%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+        </defs>
         <polyline
           points={points}
           fill="none"
-          stroke="rgba(79,142,247,0.7)"
-          strokeWidth="1.5"
+          stroke="url(#glucoseGradient)"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
