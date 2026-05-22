@@ -14,12 +14,12 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      // Nightscout-driven pages: cache for 5 min at the CDN edge
+      // Nightscout-driven pages: no CDN cache — freshness handled by "use cache" in actions.ts
       source: "/(|diabetes)",
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, s-maxage=300, stale-while-revalidate=60",
+          value: "no-store",
         },
       ],
     },

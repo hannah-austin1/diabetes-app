@@ -11,7 +11,7 @@ import {
 
 export async function getFinchData(): Promise<DailySummary[]> {
   "use cache";
-  cacheLife("days");
+  cacheLife({ revalidate: 64800, stale: 0 });
   return fetchFinchData();
 }
 
@@ -21,7 +21,7 @@ export async function getNightscoutData(
   hours = 48,
 ): Promise<NightscoutReading[]> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife({ revalidate: 300, stale: 0 });
   return fetchNightscoutData(hours);
 }
 
@@ -29,6 +29,6 @@ export async function getNightscoutTreatments(
   hours = 48,
 ): Promise<NightscoutTreatment[]> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife({ revalidate: 300, stale: 0 });
   return fetchTreatments(hours);
 }

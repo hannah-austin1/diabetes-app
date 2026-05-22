@@ -31,8 +31,13 @@ export function HeroSection() {
           <Link href="/diabetes">View my glucose data</Link>
         </Button>
         <Button asChild variant="glass" size="lg">
-          <a href="https://github.com/hgjaustin" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/hannah-austin1" target="_blank" rel="noopener noreferrer">
             GitHub
+          </a>
+        </Button>
+        <Button asChild variant="glass" size="lg">
+          <a href="https://www.linkedin.com/in/hannahaustin" target="_blank" rel="noopener noreferrer">
+            LinkedIn
           </a>
         </Button>
       </div>
