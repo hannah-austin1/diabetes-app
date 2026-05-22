@@ -81,10 +81,29 @@ export async function fetchFinchData(): Promise<DailySummary[]> {
     const r = json as Partial<FinchResponse>;
     if (r.ok !== true || !Array.isArray(r.data)) return [];
     const valid = r.data.filter(isValidDay);
+
+    // Deduplicate goals/reflections within each day (upstream sometimes emits duplicates)
+    for (const day of valid) {
+      day.completed_goals = dedupeByText(day.completed_goals);
+      day.completed_goals_count = day.completed_goals.length;
+      day.completed_reflections = dedupeByText(day.completed_reflections);
+      day.completed_reflections_count = day.completed_reflections.length;
+    }
+
     return valid.sort((a, b) => a.date.localeCompare(b.date));
   } catch {
     return [];
   }
+}
+
+/** Keep only the first occurrence of each goal/reflection by text. */
+function dedupeByText(items: CompletedGoal[]): CompletedGoal[] {
+  const seen = new Set<string>();
+  return items.filter((g) => {
+    if (seen.has(g.text)) return false;
+    seen.add(g.text);
+    return true;
+  });
 }
 
 /** A day is considered "active" if any wellness signal was logged. */

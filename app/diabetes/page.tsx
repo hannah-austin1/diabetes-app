@@ -6,8 +6,7 @@ import { computeStats, perDayStats, type NightscoutReading } from "@/lib/nightsc
 import { eventsForWindow } from "@/lib/finch";
 import type { TimelineEvent } from "@/components/diabetes/roller-coaster-viz";
 import { fmtMmol, toMmol } from "@/lib/utils";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { WellnessGlucose } from "@/components/diabetes/wellness-glucose";
 import { getFinchData, getNightscoutData, getNightscoutTreatments } from "@/lib/actions";
 import { connection } from "next/server";
@@ -247,8 +246,8 @@ function HourlyPatterns({ hourly }: { hourly: HourlyStat[] }) {
               const heightPct = (h.avg / globalMax) * 100;
               const barColor =
                 h.avg < 70 ? "#f97316"
-                : h.avg <= 180 ? "#22c55e"
-                : h.avg <= 250 ? "#eab308" : "#ef4444";
+                  : h.avg <= 180 ? "#22c55e"
+                    : h.avg <= 250 ? "#eab308" : "#ef4444";
               const isPeak = h.hour === peakHour.hour;
 
               return (

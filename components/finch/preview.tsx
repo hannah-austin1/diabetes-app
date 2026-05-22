@@ -35,7 +35,7 @@ export async function FinchPreview() {
               </div>
               <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            
+
             <div className="flex items-center gap-2 flex-wrap mb-4">
               <Badge variant="success">{s.totalGoalsCompleted.toLocaleString()} goals</Badge>
               <Badge variant="secondary">{completionPct}% rate</Badge>
@@ -45,7 +45,7 @@ export async function FinchPreview() {
                 </span>
               )}
             </div>
-            
+
             <GoalSparkbars days={recent} />
           </CardContent>
         </Card>
@@ -72,8 +72,8 @@ function GoalSparkbars({ days }: { days: DailySummary[] }) {
               className="w-full rounded-sm"
               style={{
                 height: `${Math.max(8, heightPct)}%`,
-                backgroundColor: d.completed_goals_count === 0 
-                  ? "hsl(var(--muted))" 
+                backgroundColor: d.completed_goals_count === 0
+                  ? "hsl(var(--muted))"
                   : "rgb(139, 92, 246)",
                 opacity: d.completed_goals_count === 0 ? 0.3 : 0.7,
               }}

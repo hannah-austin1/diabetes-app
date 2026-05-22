@@ -2,8 +2,8 @@
 import type { NightscoutReading, NightscoutStats } from "@/lib/nightscout";
 import { glucoseColor, glucoseLabel, trendArrow, minutesAgo, fmtMmol, toMmol, a1cLabel } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { CurrentGlucose } from "./current-glucose";
 
 export function DiabetesStats({
   readings,
@@ -23,8 +23,8 @@ export function DiabetesStats({
 
   const labelVariant =
     label === "IN RANGE" ? "success"
-    : label === "LOW" || label === "URGENT LOW" ? "danger"
-    : "warning";
+      : label === "LOW" || label === "URGENT LOW" ? "danger"
+        : "warning";
 
   return (
     <div className="space-y-4">
@@ -33,28 +33,7 @@ export function DiabetesStats({
         <CardContent className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
             {/* Big glucose number */}
-            <div className="shrink-0">
-              <p className="text-xs font-mono text-muted-foreground mb-3 uppercase tracking-widest">
-                Current Glucose
-              </p>
-              <div className="flex items-baseline gap-4">
-                <span
-                  className="text-8xl font-black font-mono leading-none"
-                  style={{ color, textShadow: `0 0 40px ${color}60` }}
-                >
-                  {mmol}
-                </span>
-                <div>
-                  <div className="text-4xl font-bold" style={{ color }}>{arrow}</div>
-                  <div className="text-sm text-muted-foreground mt-1">mmol/L</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 mt-3">
-                <Badge variant={labelVariant as "success" | "warning" | "danger"}>{label}</Badge>
-                <span className="text-sm text-muted-foreground">{ago}</span>
-              </div>
-            </div>
-
+            <CurrentGlucose />
             {/* Key metrics */}
             <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* A1C */}
