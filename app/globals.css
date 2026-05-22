@@ -40,28 +40,17 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  /* Fun animations */
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-bounce-slow: bounce-slow 3s ease-in-out infinite;
-  --animate-wiggle: wiggle 1s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-spin-slow: spin 8s linear infinite;
+  /* Subtle animations */
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-glow: glow 3s ease-in-out infinite;
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(3deg); }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes bounce-slow {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  @keyframes wiggle {
-    0%, 100% { transform: rotate(-3deg); }
-    50% { transform: rotate(3deg); }
-  }
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 1; filter: brightness(1); }
-    50% { opacity: 0.8; filter: brightness(1.2); }
+  @keyframes glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 }
 
@@ -77,27 +66,27 @@
 
 @layer base {
   :root {
-    /* Warm cream/beige base with playful accents */
-    --background: 40 30% 96%;
-    --foreground: 30 20% 15%;
-    --card: 40 25% 98%;
-    --card-foreground: 30 20% 15%;
-    --popover: 40 25% 98%;
-    --popover-foreground: 30 20% 15%;
-    --primary: 152 60% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 20% 92%;
-    --secondary-foreground: 30 20% 25%;
-    --muted: 40 15% 90%;
-    --muted-foreground: 30 10% 45%;
-    --accent: 330 65% 55%;
+    /* Elegant dark theme */
+    --background: 220 20% 6%;
+    --foreground: 210 20% 95%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 160 60% 45%;
+    --primary-foreground: 220 20% 6%;
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 210 15% 75%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 250 60% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 40 15% 85%;
-    --input: 40 15% 88%;
-    --ring: 152 60% 42%;
-    --radius: 1rem;
+    --border: 220 15% 18%;
+    --input: 220 15% 20%;
+    --ring: 160 60% 45%;
+    --radius: 0.75rem;
   }
 
   *,
@@ -112,8 +101,8 @@
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: hsl(220 20% 6%);
+    color: hsl(210 20% 95%);
     max-width: 100vw;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -122,14 +111,14 @@
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: hsl(var(--background)); }
 ::-webkit-scrollbar-thumb { 
-  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--accent))); 
-  border-radius: 4px; 
+  background: hsl(var(--muted)); 
+  border-radius: 3px; 
 }
 ::-webkit-scrollbar-thumb:hover { 
-  background: linear-gradient(180deg, hsl(var(--primary) / 0.8), hsl(var(--accent) / 0.8)); 
+  background: hsl(var(--muted-foreground)); 
 }
 
 /* Gradient text utility */
@@ -140,86 +129,32 @@
   background-clip: text;
 }
 
-.gradient-text-warm {
-  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Fun glow effects */
-.glow-green { box-shadow: 0 0 40px rgba(16, 185, 129, 0.3), 0 0 80px rgba(16, 185, 129, 0.1); }
-.glow-blue { box-shadow: 0 0 40px rgba(59, 130, 246, 0.3), 0 0 80px rgba(59, 130, 246, 0.1); }
-.glow-pink { box-shadow: 0 0 40px rgba(236, 72, 153, 0.3), 0 0 80px rgba(236, 72, 153, 0.1); }
-.glow-purple { box-shadow: 0 0 40px rgba(139, 92, 246, 0.3), 0 0 80px rgba(139, 92, 246, 0.1); }
+/* Subtle glow effects */
+.glow-green { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+.glow-blue { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+.glow-purple { box-shadow: 0 0 30px rgba(139, 92, 246, 0.15); }
 
 /* Background patterns */
 .bg-dots {
   background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-size: 32px 32px;
 }
 
-.bg-grid {
-  background-image: 
-    linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Soft mesh gradient background */
+/* Subtle mesh gradient background */
 .bg-mesh {
   background:
-    radial-gradient(ellipse at 10% 10%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 40%),
-    radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
     hsl(var(--background));
-}
-
-/* Genmoji styles */
-.genmoji {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-  transition: transform 0.3s ease;
-}
-
-.genmoji:hover {
-  transform: scale(1.2) rotate(10deg);
-}
-
-.genmoji-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.genmoji-bounce {
-  animation: bounce-slow 2s ease-in-out infinite;
-}
-
-.genmoji-wiggle {
-  animation: wiggle 0.5s ease-in-out infinite;
 }
 
 /* Interactive card hover */
 .card-interactive {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-interactive:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 
-    0 20px 40px -12px rgba(0, 0, 0, 0.1),
-    0 0 0 1px hsl(var(--border));
-}
-
-/* Skill badge animation */
-@keyframes skill-pop {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.skill-badge {
-  animation: skill-pop 0.4s ease-out backwards;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
 }

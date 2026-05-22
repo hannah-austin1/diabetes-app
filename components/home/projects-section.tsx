@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Genmoji } from "./genmoji";
+import { ArrowRight } from "lucide-react";
 
 const projects = [
   {
@@ -14,64 +15,36 @@ const projects = [
     tags: ["Next.js", "Canvas API", "Nightscout"],
     href: "/diabetes",
     emoji: "🎢",
-    color: "glucose-green",
-    gradient: "from-emerald-500/20 to-teal-500/20",
+    accentColor: "text-emerald-400",
   },
   {
     title: "Health Correlations",
     description:
-      "Pearson correlation analysis between mood, steps, goal completion and glucose metrics — finding what actually moves the needle.",
+      "Pearson correlation analysis between mood, steps, goal completion and glucose metrics.",
     tags: ["TypeScript", "Statistics", "Data Viz"],
     href: "/diabetes",
     emoji: "📊",
-    color: "glucose-blue",
-    gradient: "from-blue-500/20 to-cyan-500/20",
+    accentColor: "text-blue-400",
   },
   {
     title: "Finch Wellness",
     description:
-      "Daily mood, goal completion streaks, and mental health check-ins — synced from the Finch app via Firebase.",
+      "Daily mood, goal completion streaks, and mental health check-ins synced from Finch via Firebase.",
     tags: ["Firebase", "Cloud Functions", "React"],
     href: "/finch",
     emoji: "🐦",
-    color: "glucose-purple",
-    gradient: "from-purple-500/20 to-pink-500/20",
+    accentColor: "text-violet-400",
   },
   {
     title: "Apple Health Pipeline",
     description:
-      "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore with daily rollups.",
+      "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore.",
     tags: ["Cloud Functions", "Firestore", "HealthKit"],
     href: "/health",
     emoji: "🏃",
-    color: "glucose-orange",
-    gradient: "from-orange-500/20 to-amber-500/20",
+    accentColor: "text-orange-400",
   },
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-    },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-    },
-  },
-};
 
 export function ProjectsSection() {
   return (
@@ -82,82 +55,54 @@ export function ProjectsSection() {
       transition={{ duration: 0.6 }}
     >
       <div className="flex items-center gap-3 mb-8">
-        <Genmoji emoji="🚀" size="md" animation="bounce" />
+        <Genmoji emoji="🚀" size="md" />
         <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
           Projects
         </h2>
       </div>
 
-      <motion.div
-        className="grid md:grid-cols-2 gap-6"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-      >
+      <div className="grid md:grid-cols-2 gap-5">
         {projects.map((project, index) => (
-          <motion.div key={project.title} variants={cardVariants}>
-            <Link href={project.href} className="block h-full">
-              <Card className="h-full overflow-hidden group card-interactive border-2 border-transparent hover:border-primary/20">
-                <CardContent className="p-0">
-                  {/* Gradient header */}
-                  <div className={`bg-gradient-to-br ${project.gradient} p-6 relative overflow-hidden`}>
-                    <div className="absolute top-2 right-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                      <Genmoji
-                        emoji={project.emoji}
-                        size="xl"
-                        animation="float"
-                        delay={index * 0.1}
-                        interactive={false}
-                      />
-                    </div>
-                    <div className="relative z-10">
-                      <motion.div
-                        className="inline-block mb-3"
-                        whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <Genmoji emoji={project.emoji} size="lg" animation="none" />
-                      </motion.div>
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                        {project.title}
-                      </h3>
-                    </div>
+          <motion.div
+            key={project.title}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+          >
+            <Link href={project.href} className="block h-full group">
+              <Card className="h-full bg-card/50 border-border/50 card-interactive hover:border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <Genmoji emoji={project.emoji} size="lg" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-
-                  {/* Content */}
-                  <div className="p-6 bg-card">
-                    <p className="text-muted-foreground leading-relaxed mb-4">
-                      {project.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {project.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="font-mono text-xs"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Hover arrow */}
-                    <motion.div
-                      className="mt-4 flex items-center gap-2 text-sm text-muted-foreground group-hover:text-primary transition-colors"
-                      initial={{ x: 0 }}
-                      whileHover={{ x: 5 }}
-                    >
-                      <span>View project</span>
-                      <Genmoji emoji="👉" size="sm" animation="none" />
-                    </motion.div>
+                  
+                  <h3 className={`text-lg font-semibold mb-2 ${project.accentColor} group-hover:brightness-110 transition-all`}>
+                    {project.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {project.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="font-mono text-xs border-border/50 text-muted-foreground"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
             </Link>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </motion.section>
   );
 }

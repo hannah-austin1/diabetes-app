@@ -6,150 +6,110 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Genmoji } from "./genmoji";
 
-const floatingEmojis = [
-  { emoji: "💉", x: 5, y: 10, delay: 0 },
-  { emoji: "📊", x: 85, y: 15, delay: 0.2 },
-  { emoji: "🎢", x: 10, y: 70, delay: 0.4 },
-  { emoji: "💻", x: 90, y: 65, delay: 0.6 },
-  { emoji: "🦾", x: 3, y: 40, delay: 0.8 },
-  { emoji: "✨", x: 92, y: 40, delay: 1 },
-];
-
 export function HeroSection() {
   return (
-    <section className="relative text-center py-12 min-h-[70vh] flex flex-col justify-center">
-      {/* Floating genmojis in background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {floatingEmojis.map((item, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{ left: `${item.x}%`, top: `${item.y}%` }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.6, scale: 1 }}
-            transition={{ delay: item.delay, duration: 0.5 }}
-          >
-            <Genmoji
-              emoji={item.emoji}
-              size="lg"
-              animation="float"
-              delay={item.delay}
-              interactive={false}
-            />
-          </motion.div>
-        ))}
-      </div>
-
+    <section className="relative text-center py-16 min-h-[75vh] flex flex-col justify-center">
       {/* Status badge */}
       <motion.div
-        className="flex justify-center mb-8"
-        initial={{ opacity: 0, y: 20 }}
+        className="flex justify-center mb-10"
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <Badge variant="outline" className="gap-2 px-4 py-2 text-sm bg-card/80 backdrop-blur-sm">
-          <span className="w-2 h-2 rounded-full bg-glucose-green animate-pulse inline-block" />
-          available for cool projects
+        <Badge variant="outline" className="gap-2 px-4 py-2 text-sm bg-card/50 backdrop-blur-sm border-border/50">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse inline-block" />
+          available for projects
         </Badge>
       </motion.div>
 
-      {/* Main heading with genmojis */}
+      {/* Main heading */}
       <motion.div
-        className="relative mb-6"
-        initial={{ opacity: 0, y: 30 }}
+        className="relative mb-8"
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.1 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <h1 className="text-6xl md:text-8xl font-black tracking-tight">
-          <span className="inline-flex items-center gap-2">
-            <Genmoji emoji="👋" size="lg" animation="wiggle" delay={0.5} />
-          </span>
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+          <span className="text-foreground/90">Hey, I&apos;m</span>
           <br />
-          <span className="gradient-text">hgjaustin</span>
+          <span className="gradient-text">Hannah Austin</span>
         </h1>
       </motion.div>
 
-      {/* Subtitle with animated emojis */}
+      {/* Subtitle */}
       <motion.div
-        className="flex flex-wrap items-center justify-center gap-3 mb-6"
+        className="flex flex-wrap items-center justify-center gap-4 mb-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <span className="text-xl text-muted-foreground font-light flex items-center gap-2">
-          <Genmoji emoji="💻" size="sm" animation="bounce" delay={0.4} /> Developer
+        <span className="text-lg text-muted-foreground flex items-center gap-2">
+          <Genmoji emoji="💻" size="sm" /> Developer
         </span>
-        <span className="text-muted-foreground/50">|</span>
-        <span className="text-xl text-muted-foreground font-light flex items-center gap-2">
-          <Genmoji emoji="🩸" size="sm" animation="bounce" delay={0.5} /> T1D Warrior
+        <span className="text-muted-foreground/30">|</span>
+        <span className="text-lg text-muted-foreground flex items-center gap-2">
+          <Genmoji emoji="🩸" size="sm" /> T1D Warrior
         </span>
-        <span className="text-muted-foreground/50">|</span>
-        <span className="text-xl text-muted-foreground font-light flex items-center gap-2">
-          <Genmoji emoji="🔨" size="sm" animation="bounce" delay={0.6} /> Builder
+        <span className="text-muted-foreground/30">|</span>
+        <span className="text-lg text-muted-foreground flex items-center gap-2">
+          <Genmoji emoji="🛠️" size="sm" /> Builder
         </span>
       </motion.div>
 
       {/* Description */}
       <motion.p
-        className="max-w-2xl mx-auto text-lg text-muted-foreground leading-relaxed mb-10"
-        initial={{ opacity: 0, y: 20 }}
+        className="max-w-xl mx-auto text-muted-foreground leading-relaxed mb-12"
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
       >
-        I write code, manage my blood sugars, and occasionally do both at once.
-        Living with Type 1 Diabetes since birth — this site has{" "}
-        <span className="text-glucose-green font-medium">real-time glucose data</span> to prove it.
-        <Genmoji emoji="📈" size="sm" animation="float" delay={0.7} className="ml-1" />
+        I build things with code and manage my blood sugars — sometimes at the same time.
+        Living with Type 1 Diabetes since birth, this site features{" "}
+        <span className="text-primary font-medium">real-time glucose data</span> from my CGM.
       </motion.p>
 
       {/* CTA buttons */}
       <motion.div
-        className="flex flex-wrap items-center justify-center gap-4"
-        initial={{ opacity: 0, y: 20 }}
+        className="flex flex-wrap items-center justify-center gap-3"
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.6 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
       >
-        <Button asChild variant="glow" size="lg" className="group">
-          <Link href="/diabetes" className="flex items-center gap-2">
-            <Genmoji emoji="🎢" size="sm" animation="none" />
-            <span>View my glucose data</span>
+        <Button asChild size="lg" className="gap-2">
+          <Link href="/diabetes">
+            <Genmoji emoji="📊" size="sm" interactive={false} />
+            View Glucose Data
           </Link>
         </Button>
-        <Button asChild variant="glass" size="lg">
-          <a
-            href="https://github.com/hannah-austin1"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            <Genmoji emoji="🐙" size="sm" animation="none" />
-            <span>GitHub</span>
+        <Button asChild variant="outline" size="lg" className="gap-2">
+          <a href="https://github.com/hannah-austin1" target="_blank" rel="noopener noreferrer">
+            <Genmoji emoji="🐙" size="sm" interactive={false} />
+            GitHub
           </a>
         </Button>
-        <Button asChild variant="glass" size="lg">
-          <a
-            href="https://www.linkedin.com/in/hannahaustin"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            <Genmoji emoji="💼" size="sm" animation="none" />
-            <span>LinkedIn</span>
+        <Button asChild variant="outline" size="lg" className="gap-2">
+          <a href="https://www.linkedin.com/in/hannahaustin" target="_blank" rel="noopener noreferrer">
+            <Genmoji emoji="💼" size="sm" interactive={false} />
+            LinkedIn
           </a>
         </Button>
       </motion.div>
 
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-4 left-1/2 -translate-x-1/2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted-foreground/50"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 10, 0] }}
-        transition={{
-          opacity: { delay: 1, duration: 0.5 },
-          y: { delay: 1.5, duration: 1.5, repeat: Infinity },
-        }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
       >
-        <Genmoji emoji="👇" size="md" animation="none" />
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M19 12l-7 7-7-7" />
+          </svg>
+        </motion.div>
       </motion.div>
     </section>
   );

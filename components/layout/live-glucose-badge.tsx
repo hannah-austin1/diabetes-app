@@ -21,33 +21,10 @@ const ARROWS: Record<string, string> = {
   DoubleDown: "⇊",
 };
 
-const MOOD_EMOJIS: Record<string, string> = {
-  DoubleUp: "😰",
-  SingleUp: "😅",
-  FortyFiveUp: "🙂",
-  Flat: "😊",
-  FortyFiveDown: "🙂",
-  SingleDown: "😅",
-  DoubleDown: "😰",
-};
-
-function glucoseBadgeStyle(mmol: number): { colors: string; emoji: string } {
-  if (mmol < 3.9) {
-    return {
-      colors: "text-orange-600 border-orange-400/50 bg-orange-100",
-      emoji: "😵",
-    };
-  }
-  if (mmol > 10) {
-    return {
-      colors: "text-amber-600 border-amber-400/50 bg-amber-100",
-      emoji: "😅",
-    };
-  }
-  return {
-    colors: "text-emerald-600 border-emerald-400/50 bg-emerald-100",
-    emoji: "😊",
-  };
+function getGlucoseStyle(mmol: number): string {
+  if (mmol < 3.9) return "text-orange-400 border-orange-500/30 bg-orange-500/10";
+  if (mmol > 10) return "text-amber-400 border-amber-500/30 bg-amber-500/10";
+  return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
 }
 
 export function LiveGlucoseBadge() {
@@ -65,11 +42,11 @@ export function LiveGlucoseBadge() {
           minutesAgo: Math.round((Date.now() - result.date) / 60000),
         });
       } catch {
-        // silently fail — badge just won't show
+        // silently fail
       }
     }
     fetchLatest();
-    const interval = setInterval(fetchLatest, 60_000); // refresh every minute
+    const interval = setInterval(fetchLatest, 60_000);
     return () => {
       mounted = false;
       clearInterval(interval);
@@ -80,33 +57,25 @@ export function LiveGlucoseBadge() {
 
   const mmol = Math.round((data.sgv / 18) * 10) / 10;
   const arrow = ARROWS[data.direction] ?? "→";
-  const { colors, emoji } = glucoseBadgeStyle(mmol);
-  const moodEmoji = MOOD_EMOJIS[data.direction] ?? emoji;
+  const style = getGlucoseStyle(mmol);
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay: 0.3 }}
     >
       <Link
         href="/diabetes"
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border-2 text-xs font-mono transition-all duration-300 hover:scale-105 hover:shadow-md ${colors}`}
+        className={`flex items-center gap-2 px-2.5 py-1 rounded-md border text-xs font-mono transition-all hover:brightness-110 ${style}`}
         title={`${mmol} mmol/L — ${data.minutesAgo}m ago`}
       >
+        <span className="font-semibold">{mmol.toFixed(1)}</span>
+        <span className="opacity-70">{arrow}</span>
         <motion.span
-          className="text-base"
-          animate={{ scale: [1, 1.2, 1] }}
+          className="w-1.5 h-1.5 rounded-full bg-current"
+          animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
-        >
-          {moodEmoji}
-        </motion.span>
-        <span className="font-bold">{mmol.toFixed(1)}</span>
-        <span className="text-[11px] opacity-70">{arrow}</span>
-        <motion.span
-          className="w-2 h-2 rounded-full bg-current"
-          animate={{ opacity: [1, 0.4, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
         />
       </Link>
     </motion.div>
