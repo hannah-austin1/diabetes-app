@@ -2,8 +2,6 @@ import Link from "next/link";
 import {
   summarizeFinch,
   moodLabel,
-  rollupHealth,
-  healthLabel,
 } from "@/lib/finch";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +49,6 @@ async function FinchContent() {
   }
 
   const s = summarizeFinch(days);
-  const health = rollupHealth(days);
   const completionPct = Math.round(s.completionRate * 100);
   const checkInPct = s.totalDays > 0
     ? Math.round((s.daysWithCheckIn / s.totalDays) * 100)
@@ -59,7 +56,6 @@ async function FinchContent() {
 
   const firstDate = s.firstDate ? new Date(s.firstDate + "T00:00:00") : null;
   const lastDate = s.lastDate ? new Date(s.lastDate + "T00:00:00") : null;
-  const lastUpdated = s.lastUpdatedTs > 0 ? new Date(s.lastUpdatedTs) : null;
 
   // mood timeline (last 14 days with mood)
   const moodTimeline = days
@@ -300,70 +296,15 @@ async function FinchContent() {
         </Card>
       </div>
 
-      {/* Apple Health peek (full breakdown lives on /health) */}
-      {health.length > 0 && (
-        <Card className="mb-10 border-glucose-green/20">
-          <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <span>🍎</span> Apple Health Snapshot
-              </h2>
-              <Link href="/health" className="text-xs text-primary hover:underline">
-                Full breakdown →
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {health.slice(0, 4).map((m) => {
-                const meta = healthLabel(m.key);
-                return (
-                  <div key={m.key} className="rounded-lg bg-secondary/40 border border-border p-3">
-                    <div className="text-xl mb-1">{meta.emoji}</div>
-                    <div className="text-lg font-bold font-mono text-foreground">
-                      {Math.round(m.avg).toLocaleString()}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {meta.label} · avg/day · {m.unit}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Pipeline / about section */}
-      <Card className="border-glucose-purple/20">
-        <CardContent className="p-6">
-          <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
-            <span>🔌</span> How this stays fresh
-          </h3>
-          <div className="text-sm text-muted-foreground space-y-2 leading-relaxed">
-            <p>
-              An iOS Shortcut on my phone uploads my Finch export + Apple Health
-              snapshot to a Firestore-backed pipeline, and a Cloud Function
-              (<code className="text-foreground">getFinchData</code>) serves the rolled-up
-              daily summary back to this page. The page re-fetches once an hour,
-              so anything I do in the morning shows up here by mid-day.
-            </p>
-            {lastUpdated && (
-              <p className="text-xs pt-2">
-                Data freshest as of: <span className="font-mono">{lastUpdated.toLocaleString()}</span>
-              </p>
-            )}
-          </div>
-          <div className="mt-4 flex gap-4 text-sm">
-            <Link href="/diabetes" className="text-primary hover:underline">
-              ← Back to glucose dashboard
-            </Link>
-            <Link href="/health" className="text-primary hover:underline">
-              Apple Health activity →
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick nav */}
+      <div className="flex gap-4 text-sm">
+        <Link href="/diabetes" className="text-primary hover:underline">
+          ← Glucose dashboard
+        </Link>
+        <Link href="/health" className="text-primary hover:underline">
+          Apple Health →
+        </Link>
+      </div>
     </div>
   );
 }
