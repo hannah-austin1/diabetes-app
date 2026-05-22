@@ -168,7 +168,25 @@ function MetricChart({ m }: { m: HealthRollup }) {
 
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
-export default async function HealthPage() {
+import { Suspense } from "react";
+
+export default function HealthPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
+        <div className="rounded-xl border border-border bg-card/50 p-8 animate-pulse">
+          <div className="h-4 w-24 bg-secondary rounded mb-6" />
+          <div className="h-16 w-48 bg-secondary rounded mb-4" />
+          <div className="h-3 w-64 bg-secondary/60 rounded" />
+        </div>
+      </div>
+    }>
+      <HealthContent />
+    </Suspense>
+  );
+}
+
+async function HealthContent() {
   const allDays = await getFinchData();
   const today = new Date().toISOString().slice(0, 10);
   const days = allDays.filter((d) => d.date < today);
