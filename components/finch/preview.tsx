@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { getFinchData } from "@/lib/actions";
 
 export async function FinchPreview() {
-  const days = await getFinchData();
+  const allDays = await getFinchData();
+  const today = new Date().toISOString().slice(0, 10);
+  const days = allDays.filter((d) => d.date < today);
   if (days.length === 0) return null;
 
   const s = summarizeFinch(days);

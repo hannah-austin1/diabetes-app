@@ -28,7 +28,6 @@ async function DiabetesContent() {
     getNightscoutTreatments(48),
   ]);
 
-  const now = Date.now();
   const todayMidnight = new Date();
   todayMidnight.setHours(0, 0, 0, 0);
   const yesterdayMidnight = new Date(todayMidnight.getTime() - 24 * 60 * 60 * 1000);
@@ -36,10 +35,13 @@ async function DiabetesContent() {
   const windowEnd = todayMidnight.getTime();
 
   const ms30d = 30 * 24 * 60 * 60 * 1000;
+  const monthStart = windowEnd - ms30d; // 30 days ending at yesterday midnight
 
+  // Yesterday only — for the roller coaster
   const readings = allReadings.filter((r) => r.date >= windowStart && r.date <= windowEnd);
-  const monthReadings = allReadings.filter((r) => r.date >= now - ms30d);
-  const stats = computeStats(allReadings);
+  // Full month up to yesterday — for stats, fun stats, hourly patterns, wellness
+  const monthReadings = allReadings.filter((r) => r.date >= monthStart && r.date < windowEnd);
+  const stats = computeStats(monthReadings);
 
   const sortedReadings = [...readings].sort((a, b) => a.date - b.date);
   const finchEvents = eventsForWindow(finchDays, windowStart, windowEnd);
@@ -62,7 +64,7 @@ async function DiabetesContent() {
   ].sort((a, b) => a.ts - b.ts);
 
   const glucoseDays = perDayStats(monthReadings);
-  const hourlyStats = computeHourlyStats(readings);
+  const hourlyStats = computeHourlyStats(monthReadings);
 
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
@@ -88,18 +90,18 @@ async function DiabetesContent() {
             </span>
           </div>
         </div>
-        <RollerCoasterViz readings={readings} events={finchEvents} timeline={timeline} windowStart={windowStart} windowEnd={windowEnd} />
+        <RollerCoasterViz readings={readings} timeline={timeline} windowStart={windowStart} windowEnd={windowEnd} />
       </div>
 
       {/* 2. Stats */}
       <Suspense fallback={<DiabetesStatsLoading />}>
-        <DiabetesStats readings={readings} stats={stats} />
+        <DiabetesStats readings={monthReadings} stats={stats} />
       </Suspense>
 
       {/* 3. Fun Stats */}
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground mb-6">Fun Stats</h2>
-        <FunStats readings={readings} a1c={stats.a1c} />
+        <h2 className="text-2xl font-bold text-foreground mb-6">Fun Stats · Last 30 Days</h2>
+        <FunStats readings={monthReadings} a1c={stats.a1c} />
       </div>
 
       {/* 4. Wellness vs Glucose (30 days) */}
@@ -109,7 +111,7 @@ async function DiabetesContent() {
       <div className="mt-12">
         <h2 className="text-2xl font-bold text-foreground mb-2">When is Your Glucose Highest?</h2>
         <p className="text-muted-foreground text-sm mb-6">
-          Average glucose by hour of day over the last 24h — spot your personal peaks and valleys.
+          Average glucose by hour of day over the last 30 days — spot your personal peaks and valleys.
         </p>
         <HourlyPatterns hourly={hourlyStats} />
       </div>

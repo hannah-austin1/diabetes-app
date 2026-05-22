@@ -70,7 +70,7 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
     .sort((a, b) => a.date - b.date);
 
   const timeSpan = windowEnd - windowStart || 1;
-  const eventsInWindow = events.filter((e) => e.ts >= windowStart && e.ts <= windowEnd);
+
 
 
   // ── Draw the STATIC background (once) ──
@@ -317,7 +317,7 @@ export function RollerCoasterViz({ readings, events = [], timeline = [], windowS
 
     markersRef.current = markers;
     bgDrawnRef.current = true;
-  }, [sorted, timeline, eventsInWindow, timeSpan, windowStart, windowEnd]);
+  }, [sorted, timeline, timeSpan, windowStart, windowEnd]);
 
   // ── Animate ONLY the car on a separate canvas ──
   useEffect(() => {

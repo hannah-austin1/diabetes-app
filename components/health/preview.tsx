@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { getFinchData } from "@/lib/actions";
 
 export async function HealthPreview() {
-  const days = await getFinchData();
+  const allDays = await getFinchData();
+  const today = new Date().toISOString().slice(0, 10);
+  const days = allDays.filter((d) => d.date < today);
   const health = rollupHealth(days);
   if (health.length === 0) return null;
 

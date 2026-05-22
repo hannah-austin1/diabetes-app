@@ -169,7 +169,9 @@ function MetricChart({ m }: { m: HealthRollup }) {
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function HealthPage() {
-  const days = await getFinchData();
+  const allDays = await getFinchData();
+  const today = new Date().toISOString().slice(0, 10);
+  const days = allDays.filter((d) => d.date < today);
   const health = rollupHealth(days);
   const groups = groupHealthByCategory(health);
 
