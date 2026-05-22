@@ -5,6 +5,7 @@ import { glucoseColor, glucoseLabel, trendArrow, minutesAgo, fmtMmol } from "@/l
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getNightscoutData } from "@/lib/actions";
+import { ArrowRight } from "lucide-react";
 
 export async function DiabetesPreview() {
   await connection();
@@ -26,36 +27,32 @@ export async function DiabetesPreview() {
 
   return (
     <section>
-      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">
-        Live Glucose
-      </h2>
-      <Link href="/diabetes" className="block">
-        <Card className="hover:border-border/80 hover:bg-card/80 transition-all duration-300 group cursor-pointer">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-baseline gap-3 mb-2">
-                  <span className="text-6xl font-black font-mono" style={{ color }}>
-                    {mmol}
-                  </span>
-                  <span className="text-3xl font-bold" style={{ color }}>{arrow}</span>
-                  <span className="text-sm text-muted-foreground self-end mb-1">mmol/L</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge variant={labelVariant as "success" | "warning" | "danger"}>{label}</Badge>
-                  <span className="text-xs text-muted-foreground">{ago}</span>
-                </div>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-2xl">📊</span>
+        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+          Live Glucose
+        </h2>
+      </div>
+      <Link href="/diabetes" className="block group">
+        <Card className="bg-card/50 border-border/50 card-interactive hover:border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-baseline gap-3">
+                <span className="text-5xl font-bold font-mono" style={{ color }}>
+                  {mmol}
+                </span>
+                <span className="text-2xl" style={{ color }}>{arrow}</span>
+                <span className="text-sm text-muted-foreground">mmol/L</span>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground mb-2 group-hover:text-foreground transition-colors">
-                  View full dashboard →
-                </div>
-                <div className="text-xs text-muted-foreground font-mono">24h roller coaster</div>
-              </div>
+              <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="mt-6">
-              <MiniSparkline readings={readings} />
+            
+            <div className="flex items-center gap-3 mb-4">
+              <Badge variant={labelVariant as "success" | "warning" | "danger"}>{label}</Badge>
+              <span className="text-xs text-muted-foreground">{ago}</span>
             </div>
+            
+            <MiniSparkline readings={readings} />
           </CardContent>
         </Card>
       </Link>
@@ -73,7 +70,7 @@ function MiniSparkline({ readings }: { readings: NightscoutReading[] }) {
   const range = max - min || 1;
 
   const w = 100;
-  const h = 40;
+  const h = 32;
   const points = values
     .map((v, i) => {
       const x = (i / (values.length - 1)) * w;
@@ -83,24 +80,23 @@ function MiniSparkline({ readings }: { readings: NightscoutReading[] }) {
     .join(" ");
 
   return (
-    <div className="relative">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-12">
-        <rect
-          x={0}
-          y={h - ((180 - min) / range) * h}
-          width={w}
-          height={((180 - 70) / range) * h}
-          fill="rgba(34, 197, 94, 0.06)"
-        />
-        <polyline
-          points={points}
-          fill="none"
-          stroke="rgba(79,142,247,0.7)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full h-12">
+      <rect
+        x={0}
+        y={h - ((180 - min) / range) * h}
+        width={w}
+        height={((180 - 70) / range) * h}
+        fill="rgba(16, 185, 129, 0.1)"
+        rx="1"
+      />
+      <polyline
+        points={points}
+        fill="none"
+        stroke="hsl(var(--primary))"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

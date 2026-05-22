@@ -3,8 +3,11 @@ import { rollupHealth, healthLabel } from "@/lib/finch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getFinchData } from "@/lib/actions";
+import { ArrowRight } from "lucide-react";
+import { connection } from "next/server";
 
 export async function HealthPreview() {
+  await connection();
   const allDays = await getFinchData();
   const today = new Date().toISOString().slice(0, 10);
   const days = allDays.filter((d) => d.date < today);
@@ -17,47 +20,31 @@ export async function HealthPreview() {
 
   return (
     <section>
-      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">
-        Apple Health
-      </h2>
-      <Link href="/health" className="block">
-        <Card className="hover:border-border/80 hover:bg-card/80 transition-all duration-300 group cursor-pointer">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <div className="flex items-baseline gap-3 mb-2">
-                  <span className="text-6xl font-black font-mono text-glucose-green">
-                    {Math.round(primary.avg).toLocaleString()}
-                  </span>
-                  <span className="text-3xl">{meta.emoji}</span>
-                  <span className="text-sm text-muted-foreground self-end mb-1">
-                    {primary.unit}/day
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <Badge variant="success">{meta.label} · avg</Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {primary.daysWithData} day{primary.daysWithData === 1 ? "" : "s"} of data
-                  </span>
-                  {health.length > 1 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{health.length - 1} more metric{health.length - 1 === 1 ? "" : "s"}
-                    </span>
-                  )}
-                </div>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-2xl">🏃</span>
+        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+          Apple Health
+        </h2>
+      </div>
+      <Link href="/health" className="block group">
+        <Card className="bg-card/50 border-border/50 card-interactive hover:border-border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-baseline gap-3">
+                <span className="text-5xl font-bold font-mono text-orange-400">
+                  {Math.round(primary.avg).toLocaleString()}
+                </span>
+                <span className="text-sm text-muted-foreground">{primary.unit}/day</span>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground mb-2 group-hover:text-foreground transition-colors">
-                  View activity →
-                </div>
-                <div className="text-xs text-muted-foreground font-mono">
-                  total {Math.round(primary.total).toLocaleString()}
-                </div>
-              </div>
+              <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <div className="mt-6">
-              <HealthSparkbars recent={recent} />
+            
+            <div className="flex items-center gap-2 flex-wrap mb-4">
+              <Badge variant="success">{meta.label}</Badge>
+              <Badge variant="secondary">{primary.daysWithData} days tracked</Badge>
             </div>
+            
+            <HealthSparkbars recent={recent} />
           </CardContent>
         </Card>
       </Link>
@@ -65,13 +52,10 @@ export async function HealthPreview() {
   );
 }
 
-function HealthSparkbars({
-  recent,
-}: {
-  recent: { date: string; value: number }[];
-}) {
+function HealthSparkbars({ recent }: { recent: { date: string; value: number }[] }) {
   if (recent.length === 0) return null;
   const max = Math.max(...recent.map((d) => d.value), 1);
+  
   return (
     <div className="flex items-end gap-1 h-10">
       {recent.map((d) => {
@@ -83,10 +67,11 @@ function HealthSparkbars({
             title={`${d.date}: ${d.value.toLocaleString()}`}
           >
             <div
-              className="w-full rounded-t bg-glucose-green"
+              className="w-full rounded-sm"
               style={{
-                height: `${Math.max(4, heightPct)}%`,
-                opacity: 0.8,
+                height: `${Math.max(8, heightPct)}%`,
+                backgroundColor: "rgb(249, 115, 22)",
+                opacity: 0.7,
               }}
             />
           </div>

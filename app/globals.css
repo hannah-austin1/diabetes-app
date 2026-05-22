@@ -2,93 +2,58 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --font-sans:
-    var(--font-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-mono:
-    var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
-
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
-
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
-
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  --color-glucose-green: #22c55e;
-  --color-glucose-orange: #f97316;
+  /* Glucose colors */
+  --color-glucose-green: #10b981;
+  --color-glucose-orange: #f59e0b;
   --color-glucose-red: #ef4444;
   --color-glucose-yellow: #eab308;
-  --color-glucose-blue: #4f8ef7;
-  --color-glucose-purple: #a855f7;
+  --color-glucose-blue: #3b82f6;
+  --color-glucose-purple: #8b5cf6;
+  --color-glucose-pink: #ec4899;
+  --color-glucose-teal: #14b8a6;
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --animate-pulse-slow: pulse 3s ease-in-out infinite;
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
+  /* Subtle animations */
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-glow: glow 3s ease-in-out infinite;
 
-  @keyframes float {
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-    to {
-      height: 0;
-    }
+  @keyframes glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -101,25 +66,26 @@
 
 @layer base {
   :root {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 95%;
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 95%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 217 91% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 14%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 240 5% 14%;
-    --muted-foreground: 240 5% 55%;
-    --accent: 240 5% 14%;
-    --accent-foreground: 0 0% 95%;
+    /* Elegant dark theme */
+    --background: 220 20% 6%;
+    --foreground: 210 20% 95%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 160 60% 45%;
+    --primary-foreground: 220 20% 6%;
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 210 15% 75%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 250 60% 60%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 14%;
-    --input: 240 5% 14%;
-    --ring: 217 91% 65%;
+    --border: 220 15% 18%;
+    --input: 220 15% 20%;
+    --ring: 160 60% 45%;
     --radius: 0.75rem;
   }
 
@@ -135,8 +101,8 @@
   }
 
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: hsl(220 20% 6%);
+    color: hsl(210 20% 95%);
     max-width: 100vw;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -145,29 +111,50 @@
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: hsl(var(--background)); }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
+::-webkit-scrollbar-thumb { 
+  background: hsl(var(--muted)); 
+  border-radius: 3px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: hsl(var(--muted-foreground)); 
+}
 
 /* Gradient text utility */
 .gradient-text {
-  background: linear-gradient(135deg, #4f8ef7 0%, #a855f7 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Glow effects */
-.glow-blue  { box-shadow: 0 0 30px rgba(79, 142, 247, 0.25); }
-.glow-green { box-shadow: 0 0 30px rgba(34, 197, 94, 0.25); }
-.glow-red   { box-shadow: 0 0 30px rgba(239, 68, 68, 0.25); }
+/* Subtle glow effects */
+.glow-green { box-shadow: 0 0 30px rgba(16, 185, 129, 0.15); }
+.glow-blue { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+.glow-purple { box-shadow: 0 0 30px rgba(139, 92, 246, 0.15); }
 
-/* Background mesh gradient */
+/* Background patterns */
+.bg-dots {
+  background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Subtle mesh gradient background */
 .bg-mesh {
   background:
-    radial-gradient(ellipse at 20% 20%, rgba(79, 142, 247, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 60% 30%, rgba(34, 197, 94, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%),
     hsl(var(--background));
+}
+
+/* Interactive card hover */
+.card-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.4);
 }

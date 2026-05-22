@@ -169,6 +169,7 @@ function MetricChart({ m }: { m: HealthRollup }) {
 /* ── Page ─────────────────────────────────────────────────────────────────── */
 
 import { Suspense } from "react";
+import { connection } from "next/server";
 
 export default function HealthPage() {
   return (
@@ -187,6 +188,7 @@ export default function HealthPage() {
 }
 
 async function HealthContent() {
+  await connection();
   const allDays = await getFinchData();
   const today = new Date().toISOString().slice(0, 10);
   const days = allDays.filter((d) => d.date < today);

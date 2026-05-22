@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Genmoji } from "./genmoji";
+import { ArrowRight } from "lucide-react";
 
 const projects = [
   {
@@ -9,77 +14,95 @@ const projects = [
       "An animated daily glucose visualization with physics-based car movement, carb/bolus markers, and Finch goal integration.",
     tags: ["Next.js", "Canvas API", "Nightscout"],
     href: "/diabetes",
-    dotColor: "bg-glucose-green",
-    borderAccent: "hover:border-glucose-green/40",
     emoji: "🎢",
+    accentColor: "text-emerald-400",
   },
   {
-    title: "Health × Glucose Correlations",
+    title: "Health Correlations",
     description:
-      "Pearson correlation analysis between mood, steps, goal completion and glucose metrics — finding what actually moves the needle.",
+      "Pearson correlation analysis between mood, steps, goal completion and glucose metrics.",
     tags: ["TypeScript", "Statistics", "Data Viz"],
     href: "/diabetes",
-    dotColor: "bg-glucose-blue",
-    borderAccent: "hover:border-glucose-blue/40",
     emoji: "📊",
+    accentColor: "text-blue-400",
   },
   {
-    title: "Finch Wellness Tracker",
+    title: "Finch Wellness",
     description:
-      "Daily mood, goal completion streaks, and mental health check-ins — synced from the Finch app via Firebase.",
+      "Daily mood, goal completion streaks, and mental health check-ins synced from Finch via Firebase.",
     tags: ["Firebase", "Cloud Functions", "React"],
     href: "/finch",
-    dotColor: "bg-glucose-purple",
-    borderAccent: "hover:border-glucose-purple/40",
     emoji: "🐦",
+    accentColor: "text-violet-400",
   },
   {
     title: "Apple Health Pipeline",
     description:
-      "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore with daily rollups.",
+      "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore.",
     tags: ["Cloud Functions", "Firestore", "HealthKit"],
     href: "/health",
-    dotColor: "bg-glucose-orange",
-    borderAccent: "hover:border-glucose-orange/40",
     emoji: "🏃",
+    accentColor: "text-orange-400",
   },
 ];
 
 export function ProjectsSection() {
   return (
-    <section>
-      <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">
-        Projects
-      </h2>
-      <div className="grid md:grid-cols-2 gap-4">
-        {projects.map((project) => (
-          <Link key={project.title} href={project.href}>
-            <Card
-              className={`transition-all duration-300 cursor-pointer group h-full ${project.borderAccent}`}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xl">{project.emoji}</span>
-                  <div className={`w-2 h-2 rounded-full ${project.dotColor}`} />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {project.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="font-mono text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+    <motion.section
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.6 }}
+    >
+      <div className="flex items-center gap-3 mb-8">
+        <Genmoji emoji="🚀" size="md" />
+        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
+          Projects
+        </h2>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5">
+        {projects.map((project, index) => (
+          <motion.div
+            key={project.title}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+          >
+            <Link href={project.href} className="block h-full group">
+              <Card className="h-full bg-card/50 border-border/50 card-interactive hover:border-border">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <Genmoji emoji={project.emoji} size="lg" />
+                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  
+                  <h3 className={`text-lg font-semibold mb-2 ${project.accentColor} group-hover:brightness-110 transition-all`}>
+                    {project.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {project.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="outline"
+                        className="font-mono text-xs border-border/50 text-muted-foreground"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }

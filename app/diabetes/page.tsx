@@ -6,9 +6,9 @@ import { computeStats, perDayStats, type NightscoutReading } from "@/lib/nightsc
 import { eventsForWindow } from "@/lib/finch";
 import type { TimelineEvent } from "@/components/diabetes/roller-coaster-viz";
 import { fmtMmol, toMmol } from "@/lib/utils";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { WellnessGlucose } from "@/components/diabetes/wellness-glucose";
+import { GlucoseTabs } from "@/components/diabetes/glucose-tabs";
 import { getFinchData, getNightscoutData, getNightscoutTreatments } from "@/lib/actions";
 import { connection } from "next/server";
 
@@ -42,6 +42,7 @@ async function DiabetesContent() {
   // Full month up to yesterday — for stats, fun stats, hourly patterns, wellness
   const monthReadings = allReadings.filter((r) => r.date >= monthStart && r.date < windowEnd);
   const stats = computeStats(monthReadings);
+  const { a1c } = stats;
 
   const sortedReadings = [...readings].sort((a, b) => a.date - b.date);
   const finchEvents = eventsForWindow(finchDays, windowStart, windowEnd);
@@ -80,7 +81,7 @@ async function DiabetesContent() {
         </p>
       </div>
 
-      {/* 1. Roller Coaster */}
+      {/* 1. Roller Coaster — always visible as the hero */}
       <div className="mb-8">
         <div className="mb-3">
           <div className="text-center">
@@ -93,28 +94,17 @@ async function DiabetesContent() {
         <RollerCoasterViz readings={readings} timeline={timeline} windowStart={windowStart} windowEnd={windowEnd} />
       </div>
 
-      {/* 2. Stats */}
-      <Suspense fallback={<DiabetesStatsLoading />}>
-        <DiabetesStats readings={monthReadings} stats={stats} />
-      </Suspense>
-
-      {/* 3. Fun Stats */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground mb-6">Fun Stats · Last 30 Days</h2>
-        <FunStats readings={monthReadings} a1c={stats.a1c} />
-      </div>
-
-      {/* 4. Wellness vs Glucose (30 days) */}
-      <WellnessGlucose glucoseDays={glucoseDays} finchDays={finchDays} />
-
-      {/* 5. Hourly Patterns */}
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold text-foreground mb-2">When is Your Glucose Highest?</h2>
-        <p className="text-muted-foreground text-sm mb-6">
-          Average glucose by hour of day over the last 30 days — spot your personal peaks and valleys.
-        </p>
-        <HourlyPatterns hourly={hourlyStats} />
-      </div>
+      {/* 2. Tabbed sections */}
+      <GlucoseTabs
+        overview={
+          <Suspense fallback={<DiabetesStatsLoading />}>
+            <DiabetesStats readings={monthReadings} stats={stats} />
+          </Suspense>
+        }
+        patterns={<HourlyPatternsSection hourly={hourlyStats} />}
+        funStats={<FunStats readings={monthReadings} a1c={a1c} />}
+        wellness={<WellnessGlucose glucoseDays={glucoseDays} finchDays={finchDays} />}
+      />
     </div>
   );
 }
@@ -156,9 +146,9 @@ function fmt(h: number) {
   return `${display}${ampm}`;
 }
 
-// ── Hourly patterns ───────────────────────────────────────────────────────────
+// ── Hourly patterns section ───────────────────────────────────────────────────
 
-function HourlyPatterns({ hourly }: { hourly: HourlyStat[] }) {
+function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
   const withData = hourly.filter((h) => h.count > 0);
   if (withData.length === 0) return null;
 
@@ -172,6 +162,13 @@ function HourlyPatterns({ hourly }: { hourly: HourlyStat[] }) {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">When is Your Glucose Highest?</h2>
+        <p className="text-muted-foreground text-sm mb-6">
+          Average glucose by hour of day over the last 30 days — spot your personal peaks and valleys.
+        </p>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-red-500/20">
           <CardContent className="p-5">
@@ -247,8 +244,8 @@ function HourlyPatterns({ hourly }: { hourly: HourlyStat[] }) {
               const heightPct = (h.avg / globalMax) * 100;
               const barColor =
                 h.avg < 70 ? "#f97316"
-                : h.avg <= 180 ? "#22c55e"
-                : h.avg <= 250 ? "#eab308" : "#ef4444";
+                  : h.avg <= 180 ? "#22c55e"
+                    : h.avg <= 250 ? "#eab308" : "#ef4444";
               const isPeak = h.hour === peakHour.hour;
 
               return (
@@ -294,9 +291,9 @@ function HourlyPatterns({ hourly }: { hourly: HourlyStat[] }) {
   );
 }
 
-// ── Fun stats ─────────────────────────────────────────────────────────────────
+// ── Fun stats (trimmed — removed duplicates) ──────────────────────────────────
 
-function FunStats({ readings, a1c }: { readings: NightscoutReading[]; a1c: number }) {
+function FunStats({ readings, a1c }: { readings: NightscoutReading[], a1c: number }) {
   const inRangeCount = readings.filter((r) => r.sgv >= 70 && r.sgv <= 180).length;
   const highCount = readings.filter((r) => r.sgv > 180).length;
   const lowCount = readings.filter((r) => r.sgv < 70).length;
@@ -327,20 +324,24 @@ function FunStats({ readings, a1c }: { readings: NightscoutReading[]; a1c: numbe
     { emoji: "🩸", label: "Est. A1C", value: a1c > 0 ? `${a1c.toFixed(1)}%` : "—", sub: "estimated · 90-day avg", color: "text-glucose-purple" },
   ];
 
+
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {funFacts.map((fact) => (
-        <Card key={fact.label} className="hover:border-primary/30 transition-all duration-300 group">
-          <CardContent className="p-5">
-            <div className="text-3xl mb-3 group-hover:scale-110 transition-transform inline-block">
-              {fact.emoji}
-            </div>
-            <div className={`text-2xl font-bold font-mono ${fact.color} mb-1`}>{fact.value}</div>
-            <div className="text-xs font-semibold text-foreground mb-1">{fact.label}</div>
-            <div className="text-xs text-muted-foreground">{fact.sub}</div>
-          </CardContent>
-        </Card>
-      ))}
+    <div>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Fun Stats · Last 30 Days</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {funFacts.map((fact) => (
+          <Card key={fact.label} className="hover:border-primary/30 transition-all duration-300 group">
+            <CardContent className="p-5">
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform inline-block">
+                {fact.emoji}
+              </div>
+              <div className={`text-2xl font-bold font-mono ${fact.color} mb-1`}>{fact.value}</div>
+              <div className="text-xs font-semibold text-foreground mb-1">{fact.label}</div>
+              <div className="text-xs text-muted-foreground">{fact.sub}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
