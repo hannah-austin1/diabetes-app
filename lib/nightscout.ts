@@ -32,8 +32,9 @@ export async function fetchNightscoutData(
     return getMockReadings(hours);
   }
   try {
-    const count = Math.min(hours * 12, 10000); // ~5-min intervals
-    const url = `${NIGHTSCOUT_URL}/api/v1/entries/sgv.json?count=${count}`;
+    const count = Math.min(hours * 12, 50000); // ~5-min intervals
+    const sinceMs = Date.now() - hours * 60 * 60 * 1000;
+    const url = `${NIGHTSCOUT_URL}/api/v1/entries/sgv.json?count=${count}&find[date][$gte]=${sinceMs}`;
     const res = await fetch(url, {
       cache: "no-store",
       headers: { Accept: "application/json" },
