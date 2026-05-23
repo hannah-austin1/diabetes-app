@@ -9,6 +9,7 @@ import { LiveGlucoseBadge } from "./live-glucose-badge";
 import hannah from "@/public/hannah.png"
 const links = [
   { href: "/", label: "Home", emoji: "🏠" },
+  { href: "/about", label: "About", emoji: "👩‍💻" },
   { href: "/diabetes", label: "Glucose", emoji: "🎢" },
   { href: "/health", label: "Health", emoji: "🏃" },
   { href: "/finch", label: "Finch", emoji: "🐦" },
