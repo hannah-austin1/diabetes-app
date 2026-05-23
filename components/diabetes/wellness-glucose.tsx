@@ -1,6 +1,13 @@
 import type { DayGlucoseStats } from "@/lib/nightscout";
 import type { DailySummary } from "@/lib/finch";
-import { dailySteps, joinDays, buildCorrelations, type CorrelationPair } from "@/lib/correlation";
+import {
+  dailySteps,
+  joinDays,
+  buildCorrelations,
+  buildCohortAnalyses,
+  type CorrelationPair,
+  type CohortAnalysis,
+} from "@/lib/correlation";
 import { Card, CardContent } from "@/components/ui/card";
 import { fmtMmol } from "@/lib/utils";
 
@@ -45,6 +52,7 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
   const shown = correlations.filter(
     (c) => c.n >= MIN_N && Math.abs(c.r) >= MIN_R,
   );
+  const cohorts = buildCohortAnalyses(recent);
 
   const maxSteps = Math.max(
     ...recent.map((j) => dailySteps(j.finch) ?? 0),
@@ -148,6 +156,24 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
         </CardContent>
       </Card>
 
+      {/* Cohort / tertile analysis */}
+      {cohorts.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-bold text-foreground mb-1">
+            Glucose by Day Type
+          </h3>
+          <p className="text-muted-foreground text-xs mb-4">
+            Days split into thirds by each wellness signal — see how your glucose
+            actually behaves on low vs. high days.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {cohorts.map((c) => (
+              <CohortCard key={c.id} cohort={c} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Correlation cards */}
       {shown.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,6 +231,75 @@ function DaySparkline({ values }: { values: number[] }) {
         vectorEffect="non-scaling-stroke"
       />
     </svg>
+  );
+}
+
+function CohortCard({ cohort }: { cohort: CohortAnalysis }) {
+  const { metric, buckets, tirDelta, takeaway } = cohort;
+  const maxTir = Math.max(...buckets.map((b) => b.meanTir), 1);
+  const deltaSign = tirDelta > 0 ? "+" : "";
+  const deltaColor =
+    tirDelta >= 5
+      ? "text-glucose-green"
+      : tirDelta <= -5
+        ? "text-glucose-orange"
+        : "text-muted-foreground";
+
+  return (
+    <Card className="hover:border-primary/30 transition-colors">
+      <CardContent className="p-5">
+        <div className="flex items-baseline justify-between mb-3">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {metric} → Glucose
+          </p>
+          <span className={`text-sm font-bold font-mono ${deltaColor}`}>
+            {deltaSign}{tirDelta}% TIR
+          </span>
+        </div>
+
+        <div className="space-y-2.5">
+          {buckets.map((b, i) => {
+            const tirPct = (b.meanTir / Math.max(maxTir, 1)) * 100;
+            const tone =
+              b.meanTir >= 70
+                ? "bg-glucose-green/80"
+                : b.meanTir >= 50
+                  ? "bg-glucose-yellow/80"
+                  : "bg-glucose-orange/80";
+            return (
+              <div key={i} className="grid grid-cols-[48px_1fr_56px] gap-2 items-center">
+                <div>
+                  <div className="text-[11px] font-mono font-semibold text-foreground leading-tight">
+                    {b.label}
+                  </div>
+                  <div className="text-[9px] font-mono text-muted-foreground leading-tight">
+                    {b.rangeText}
+                  </div>
+                </div>
+                <div className="h-3 rounded-full bg-secondary/40 overflow-hidden">
+                  <div
+                    className={`h-full ${tone} transition-all`}
+                    style={{ width: `${Math.max(4, tirPct)}%` }}
+                  />
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-bold font-mono text-foreground leading-tight">
+                    {b.meanTir}%
+                  </div>
+                  <div className="text-[9px] font-mono text-muted-foreground leading-tight">
+                    {fmtMmol(b.meanAvg)} · n={b.n}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-foreground/85 leading-snug mt-4">
+          {takeaway}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
