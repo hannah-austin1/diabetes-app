@@ -1,0 +1,51 @@
+{
+  "header": {
+    "statusLabel": "FROM FIREBASE",
+    "statusColor": "bg-glucose-purple",
+    "title": "Finch Wellness",
+    "description": "Daily self-care, reflections, and good vibes from Finch — built using a custom Apple shortcut that uploads the backup to Firebase - I reverse engineered the Hive database files to get the schema and wrote a Typescript script to parse it!"
+  },
+  "emptyState": {
+    "title": "Finch Wellness",
+    "message": "No Finch data available right now.",
+    "detail": "The getFinchData Cloud Function returned nothing — it may be cold-starting or temporarily unreachable. Refresh in a minute."
+  },
+  "stats": [
+    { "emoji": "📅", "label": "Days Tracked", "color": "text-glucose-blue" },
+    { "emoji": "🔥", "label": "Check-In Streak", "color": "text-glucose-orange" },
+    { "emoji": "✅", "label": "Goals Completed", "color": "text-glucose-green" },
+    { "emoji": "💛", "label": "Good Vibes", "sub": "sent to friends", "color": "text-glucose-yellow" }
+  ],
+  "sections": {
+    "goalCompletion": {
+      "title": "Goal Completion",
+      "goalsLabel": "Goals completed vs scheduled",
+      "checkInLabel": "Days I actually checked in"
+    },
+    "activities": {
+      "breathing": { "emoji": "🌬️", "title": "Breathing" },
+      "reflections": { "emoji": "📝", "title": "Reflections" },
+      "mood": { "emoji": "🌈", "title": "Mood" }
+    },
+    "recentMood": {
+      "title": "Recent Mood"
+    },
+    "topGoals": {
+      "title": "Most-Completed Goals",
+      "empty": "No goals logged yet."
+    },
+    "selfCareAreas": {
+      "title": "Self-Care Areas",
+      "empty": "Goals haven't been tagged with self-care areas yet."
+    }
+  },
+  "nav": {
+    "left": { "label": "← Glucose dashboard", "href": "/diabetes" },
+    "right": { "label": "Apple Health →", "href": "/health" }
+  },
+  "preview": {
+    "emoji": "🐦",
+    "title": "Self-Care",
+    "streakUnit": "day streak"
+  }
+}

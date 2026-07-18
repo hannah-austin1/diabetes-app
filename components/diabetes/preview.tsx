@@ -4,8 +4,12 @@ import { type NightscoutReading } from "@/lib/nightscout";
 import { glucoseColor, glucoseLabel, trendArrow, minutesAgo, fmtMmol } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PreviewHeader } from "@/components/shared/preview-header";
 import { getNightscoutData } from "@/lib/actions";
 import { ArrowRight } from "lucide-react";
+import diabetesData from "@/data/diabetes.json";
+
+const { preview } = diabetesData;
 
 export async function DiabetesPreview() {
   await connection();
@@ -27,12 +31,7 @@ export async function DiabetesPreview() {
 
   return (
     <section>
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-2xl">📊</span>
-        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
-          Live Glucose
-        </h2>
-      </div>
+      <PreviewHeader emoji={preview.emoji} title={preview.title} />
       <Link href="/diabetes" className="block group">
         <Card className="bg-card/50 border-border/50 card-interactive hover:border-border">
           <CardContent className="p-6">
@@ -42,7 +41,7 @@ export async function DiabetesPreview() {
                   {mmol}
                 </span>
                 <span className="text-2xl" style={{ color }}>{arrow}</span>
-                <span className="text-sm text-muted-foreground">mmol/L</span>
+                <span className="text-sm text-muted-foreground">{preview.unit}</span>
               </div>
               <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>

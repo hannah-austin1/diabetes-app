@@ -1,0 +1,21 @@
+{
+  "siteName": "hgjaustin",
+  "siteNameAccent": ".",
+  "links": [
+    { "href": "/", "label": "Home", "emoji": "🏠" },
+    { "href": "/about", "label": "About", "emoji": "👩‍💻" },
+    { "href": "/diabetes", "label": "Glucose", "emoji": "🎢" },
+    { "href": "/health", "label": "Health", "emoji": "🏃" },
+    { "href": "/finch", "label": "Finch", "emoji": "🐦" }
+  ],
+  "metadata": {
+    "title": "hgjaustin — Developer & T1D Warrior",
+    "description": "Developer portfolio showcasing projects, real-time glucose data, and the intersection of code and chronic illness management."
+  },
+  "footer": {
+    "builtWith": "Built with",
+    "emoji": "💜",
+    "framework": "using Next.js 16",
+    "tagline": "React Server Components · Real-time Nightscout data · Lots of coffee"
+  }
+}

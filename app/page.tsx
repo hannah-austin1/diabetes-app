@@ -1,39 +1,13 @@
-import { Suspense } from "react";
 import { HeroSection } from "@/components/home/hero-section";
 import { AboutSection } from "@/components/home/about-section";
 import { ProjectsSection } from "@/components/home/projects-section";
-import { DiabetesPreview } from "@/components/diabetes/preview";
-import { FinchPreview } from "@/components/finch/preview";
-import { HealthPreview } from "@/components/health/preview";
-import { AnimatedSection, AnimatedHeader } from "@/components/home/animated-section";
 
 export default function Home() {
   return (
-    <div className="max-w-5xl mx-auto px-6 pt-28 pb-16 space-y-24">
+    <div className="max-w-5xl mx-auto px-6 pt-28 pb-16 space-y-6">
       <HeroSection />
       <AboutSection />
       <ProjectsSection />
-      
-      <section>
-        <AnimatedHeader emoji="📡" title="Live Data" />
-        <div className="space-y-8">
-          <AnimatedSection delay={0.1}>
-            <Suspense fallback={<PreviewSkeleton emoji="🩸" />}>
-              <DiabetesPreview />
-            </Suspense>
-          </AnimatedSection>
-          <AnimatedSection delay={0.2}>
-            <Suspense fallback={<PreviewSkeleton emoji="🐦" />}>
-              <FinchPreview />
-            </Suspense>
-          </AnimatedSection>
-          <AnimatedSection delay={0.3}>
-            <Suspense fallback={<PreviewSkeleton emoji="🏃" />}>
-              <HealthPreview />
-            </Suspense>
-          </AnimatedSection>
-        </div>
-      </section>
     </div>
   );
 }

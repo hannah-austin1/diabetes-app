@@ -14,7 +14,9 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SectionHeader } from "@/components/shared/section-header";
 import { getFinchData } from "@/lib/actions";
+import healthContent from "@/data/health.json";
 
 export const metadata = {
   title: "Health — hgjaustin",
@@ -158,8 +160,8 @@ function MetricChart({ m }: { m: HealthRollup }) {
           })}
         </div>
         <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-2">
-          <span>{m.perDay[0]?.date.slice(5)}</span>
-          <span>{m.perDay[m.perDay.length - 1]?.date.slice(5)}</span>
+          <span>{m.perDay[0] ? `${m.perDay[0].date.slice(8)}/${m.perDay[0].date.slice(5, 7)}` : ""}</span>
+          <span>{m.perDay[m.perDay.length - 1] ? `${m.perDay[m.perDay.length - 1].date.slice(8)}/${m.perDay[m.perDay.length - 1].date.slice(5, 7)}` : ""}</span>
         </div>
       </CardContent>
     </Card>
@@ -218,43 +220,38 @@ async function HealthContent() {
   const firstD = firstDate ? new Date(firstDate + "T00:00:00") : null;
   const lastD = lastDate ? new Date(lastDate + "T00:00:00") : null;
 
+  const dateRange = firstD && lastD
+    ? `${firstD.toLocaleDateString("en-GB")} – ${lastD.toLocaleDateString("en-GB")}`
+    : undefined;
+
+  const statusLabel = health.length > 0
+    ? healthContent.header.statusLabelLive
+    : healthContent.header.statusLabelWaiting;
+
+  const statusColor = health.length > 0 ? "bg-glucose-green" : "bg-yellow-400";
+
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <div
-            className={`w-3 h-3 rounded-full animate-pulse ${health.length > 0 ? "bg-glucose-green" : "bg-yellow-400"
-              }`}
-          />
-          <span className="text-sm text-muted-foreground font-mono">
-            APPLE HEALTH · {health.length > 0 ? "LIVE FROM FIREBASE" : "WAITING FOR FIRST UPLOAD"}
-            {firstD && lastD && (
-              <> · {firstD.toLocaleDateString()} – {lastD.toLocaleDateString()}</>
-            )}
-          </span>
-        </div>
-        <h1 className="text-5xl font-bold gradient-text mb-3">My Activity</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          Apple Health metrics rolled up day-by-day. Whatever HealthKit
-          categories my phone uploads end up here automatically.
-        </p>
-      </div>
+      <SectionHeader
+        statusColor={statusColor}
+        statusLabel={statusLabel}
+        dateRange={dateRange}
+        title={healthContent.header.title}
+        description={healthContent.header.description}
+      />
 
       {health.length === 0 ? (
         <Card className="border-yellow-500/30">
           <CardHeader>
             <div className="flex items-start gap-4">
-              <div className="text-3xl">⏳</div>
+              <div className="text-3xl">{healthContent.emptyState.emoji}</div>
               <div>
                 <CardTitle className="text-foreground mb-1">
-                  No Apple Health metrics yet
+                  {healthContent.emptyState.title}
                 </CardTitle>
                 <CardDescription>
-                  The Firebase pipeline is reachable, but no HealthKit metrics
-                  have come through in the {days.length}-day window yet. Once
-                  the iOS Shortcut sends a Health snapshot, steps, energy,
-                  heart rate, and friends will show up here automatically.
+                  {healthContent.emptyState.description.replace("{days}", days.length.toString())}
                 </CardDescription>
               </div>
             </div>
@@ -265,7 +262,7 @@ async function HealthContent() {
           {/* Legend */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-foreground mb-4">
-              Averages over the period
+              {healthContent.sections.averages}
             </h2>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               {activeCategories.map((cat) => (
@@ -292,7 +289,7 @@ async function HealthContent() {
           {health.filter((m) => m.daysWithData >= 2).length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-foreground mb-6">
-                Daily Trends
+                {healthContent.sections.dailyTrends}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {health
@@ -309,21 +306,18 @@ async function HealthContent() {
       <Card className="mt-10 border-primary/20">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <div className="text-2xl">🔌</div>
+            <div className="text-2xl">{healthContent.pipeline.emoji}</div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground mb-1">Pipeline</h3>
+              <h3 className="font-semibold text-foreground mb-1">{healthContent.pipeline.title}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                Custom Swift Apple HealthKit app → Automated daily export using Firebase Cloud Function → Firestore →{" "}
-                <code className="text-foreground">getFinchData</code> → this page.
-                Whatever HealthKit identifiers my phone pushes will appear above
-                automatically — no per-metric config needed.
+                {healthContent.pipeline.description}
               </p>
               <div className="flex gap-4 text-sm">
-                <Link href="/finch" className="text-primary hover:underline">
-                  ← Finch wellness
+                <Link href={healthContent.nav.left.href} className="text-primary hover:underline">
+                  {healthContent.nav.left.label}
                 </Link>
-                <Link href="/diabetes" className="text-primary hover:underline">
-                  Glucose dashboard →
+                <Link href={healthContent.nav.right.href} className="text-primary hover:underline">
+                  {healthContent.nav.right.label}
                 </Link>
               </div>
             </div>

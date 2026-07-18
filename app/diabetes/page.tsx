@@ -9,8 +9,11 @@ import { fmtMmol, toMmol } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { WellnessGlucose } from "@/components/diabetes/wellness-glucose";
 import { GlucoseTabs } from "@/components/diabetes/glucose-tabs";
+import { SectionHeader } from "@/components/shared/section-header";
+import { StatCard } from "@/components/shared/stat-card";
 import { getFinchData, getNightscoutData, getNightscoutTreatments } from "@/lib/actions";
 import { connection } from "next/server";
+import diabetesContent from "@/data/diabetes.json";
 
 export default function DiabetesPage() {
   return (
@@ -70,24 +73,21 @@ async function DiabetesContent() {
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-3 h-3 rounded-full bg-glucose-green animate-pulse" />
-          <span className="text-sm text-muted-foreground font-mono">LIVE DATA FROM NIGHTSCOUT</span>
-        </div>
-        <h1 className="text-5xl font-bold gradient-text mb-3">My Glucose Journey</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          T1D since day one — real-time data from Nightscout. Every dip, climb, and in-range stretch.
-        </p>
-      </div>
+      <SectionHeader
+        statusLabel={diabetesContent.header.statusLabel}
+        title={diabetesContent.header.title}
+        description={diabetesContent.header.description}
+      />
 
       {/* 1. Roller Coaster — always visible as the hero */}
       <div className="mb-8">
         <div className="mb-3">
           <div className="text-center">
-            <h2 className="text-xl font-bold text-foreground leading-tight">Yesterday</h2>
+            <h2 className="text-xl font-bold text-foreground leading-tight">
+              {diabetesContent.rollerCoaster.title}
+            </h2>
             <span className="text-xs text-muted-foreground font-mono">
-              mmol/L · midnight to midnight
+              {diabetesContent.rollerCoaster.subtitle}
             </span>
           </div>
         </div>
@@ -148,6 +148,8 @@ function fmt(h: number) {
 
 // ── Hourly patterns section ───────────────────────────────────────────────────
 
+const { hourlyPatterns } = diabetesContent;
+
 function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
   const withData = hourly.filter((h) => h.count > 0);
   if (withData.length === 0) return null;
@@ -163,18 +165,18 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">When is Your Glucose Highest?</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{hourlyPatterns.title}</h2>
         <p className="text-muted-foreground text-sm mb-6">
-          Average glucose by hour of day over the last 30 days — spot your personal peaks and valleys.
+          {hourlyPatterns.description}
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-red-500/20">
           <CardContent className="p-5">
-            <div className="text-2xl mb-2">🌅</div>
+            <div className="text-2xl mb-2">{hourlyPatterns.highestHour.emoji}</div>
             <div className="text-2xl font-black font-mono text-red-400 mb-0.5">{fmt(peakHour.hour)}</div>
-            <div className="text-xs font-semibold text-foreground mb-1">Highest Hour</div>
+            <div className="text-xs font-semibold text-foreground mb-1">{hourlyPatterns.highestHour.label}</div>
             <div className="text-xs text-muted-foreground">
               avg {fmtMmol(peakHour.avg)} mmol/L · {peakHour.count} readings
             </div>
@@ -183,9 +185,9 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
 
         <Card className="border-blue-500/20">
           <CardContent className="p-5">
-            <div className="text-2xl mb-2">🌙</div>
+            <div className="text-2xl mb-2">{hourlyPatterns.lowestHour.emoji}</div>
             <div className="text-2xl font-black font-mono text-blue-400 mb-0.5">{fmt(valleyHour.hour)}</div>
-            <div className="text-xs font-semibold text-foreground mb-1">Lowest Hour</div>
+            <div className="text-xs font-semibold text-foreground mb-1">{hourlyPatterns.lowestHour.label}</div>
             <div className="text-xs text-muted-foreground">
               avg {fmtMmol(valleyHour.avg)} mmol/L · {valleyHour.count} readings
             </div>
@@ -194,8 +196,8 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
 
         <Card className="border-orange-500/20">
           <CardContent className="p-5">
-            <div className="text-2xl mb-2">🔥</div>
-            <p className="text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">Top 3 Spiky Hours</p>
+            <div className="text-2xl mb-2">{hourlyPatterns.spikyHours.emoji}</div>
+            <p className="text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">{hourlyPatterns.spikyHours.label}</p>
             <div className="space-y-1">
               {topHours.map((h) => (
                 <div key={h.hour} className="flex items-center justify-between text-xs">
@@ -209,8 +211,8 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
 
         <Card className="border-green-500/20">
           <CardContent className="p-5">
-            <div className="text-2xl mb-2">😌</div>
-            <p className="text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">3 Calmest Hours</p>
+            <div className="text-2xl mb-2">{hourlyPatterns.calmestHours.emoji}</div>
+            <p className="text-xs font-mono text-muted-foreground mb-2 uppercase tracking-wider">{hourlyPatterns.calmestHours.label}</p>
             <div className="space-y-1">
               {bottomHours.map((h) => (
                 <div key={h.hour} className="flex items-center justify-between text-xs">
@@ -227,7 +229,7 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
       <Card>
         <CardContent className="p-6">
           <p className="text-xs font-mono text-muted-foreground mb-5 uppercase tracking-widest">
-            Average Glucose by Hour · 3.9–10.0 mmol/L target
+            {hourlyPatterns.chartLabel}
           </p>
           <div className="flex items-end gap-1 h-28">
             {hourly.map((h) => {
@@ -272,18 +274,12 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
             })}
           </div>
           <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded bg-glucose-green opacity-60" />
-              In range (3.9–10.0)
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded bg-glucose-yellow opacity-60" />
-              High (&gt;10.0)
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded bg-glucose-orange opacity-60" />
-              Low (&lt;3.9)
-            </div>
+            {hourlyPatterns.legend.map((item) => (
+              <div key={item.label} className="flex items-center gap-1.5">
+                <div className={`w-2.5 h-2.5 rounded ${item.className} opacity-60`} />
+                {item.label}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -292,6 +288,8 @@ function HourlyPatternsSection({ hourly }: { hourly: HourlyStat[] }) {
 }
 
 // ── Fun stats (trimmed — removed duplicates) ──────────────────────────────────
+
+const { funStats: funStatsContent } = diabetesContent;
 
 function FunStats({ readings, a1c }: { readings: NightscoutReading[], a1c: number }) {
   const inRangeCount = readings.filter((r) => r.sgv >= 70 && r.sgv <= 180).length;
@@ -313,33 +311,33 @@ function FunStats({ readings, a1c }: { readings: NightscoutReading[], a1c: numbe
     if (isInRange !== wasInRange) { rides++; wasInRange = isInRange; }
   }
 
+  const labels = funStatsContent.labels;
+
   const funFacts = [
-    { emoji: "🎢", label: "Coaster Rides", value: rides.toString(), sub: "in/out of range crossings", color: "text-glucose-purple" },
-    { emoji: "🏔️", label: "Peak Summit", value: `${fmtMmol(peak)} mmol`, sub: "highest in 24h", color: "text-red-400" },
-    { emoji: "🕳️", label: "Deepest Valley", value: `${fmtMmol(valley)} mmol`, sub: "lowest in 24h", color: "text-glucose-blue" },
-    { emoji: "🎯", label: "In Range", value: `${inRangePct}%`, sub: `${inRangeCount} of ${total} readings`, color: "text-glucose-green" },
-    { emoji: "🚀", label: "High Launches", value: `${highPct}%`, sub: "above 10.0 mmol/L", color: "text-glucose-orange" },
-    { emoji: "📉", label: "Low Dips", value: `${lowPct}%`, sub: "below 3.9 mmol/L", color: "text-glucose-yellow" },
-    { emoji: "📊", label: "24h Average", value: `${toMmol(avg).toFixed(1)} mmol`, sub: "mean over 24 hours", color: "text-glucose-blue" },
-    { emoji: "🩸", label: "Est. A1C", value: a1c > 0 ? `${a1c.toFixed(1)}%` : "—", sub: "estimated · 90-day avg", color: "text-glucose-purple" },
+    { ...labels.coasterRides, value: rides.toString() },
+    { ...labels.peakSummit, value: `${fmtMmol(peak)} mmol` },
+    { ...labels.deepestValley, value: `${fmtMmol(valley)} mmol` },
+    { ...labels.inRange, value: `${inRangePct}%`, sub: `${inRangeCount} of ${total} readings` },
+    { ...labels.highLaunches, value: `${highPct}%` },
+    { ...labels.lowDips, value: `${lowPct}%` },
+    { ...labels.average, value: `${toMmol(avg).toFixed(1)} mmol` },
+    { ...labels.a1c, value: a1c > 0 ? `${a1c.toFixed(1)}%` : "—" },
   ];
 
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-6">Fun Stats · Last 30 Days</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">{funStatsContent.title}</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {funFacts.map((fact) => (
-          <Card key={fact.label} className="hover:border-primary/30 transition-all duration-300 group">
-            <CardContent className="p-5">
-              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform inline-block">
-                {fact.emoji}
-              </div>
-              <div className={`text-2xl font-bold font-mono ${fact.color} mb-1`}>{fact.value}</div>
-              <div className="text-xs font-semibold text-foreground mb-1">{fact.label}</div>
-              <div className="text-xs text-muted-foreground">{fact.sub}</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            key={fact.label}
+            emoji={fact.emoji}
+            label={fact.label}
+            value={fact.value}
+            sub={fact.sub}
+            color={fact.color}
+          />
         ))}
       </div>
     </div>

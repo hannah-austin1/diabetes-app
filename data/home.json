@@ -1,0 +1,191 @@
+{
+  "hero": {
+    "greeting": "Hey, I'm",
+    "name": "Hannah Austin",
+    "roles": [
+      {
+        "emoji": "💻",
+        "label": "Developer"
+      },
+      {
+        "emoji": "🩸",
+        "label": "Bionic Pancreas Wearer"
+      },
+      {
+        "emoji": "💃",
+        "label": "People-Focused Technology Leader"
+      }
+    ],
+    "description": {
+      "before": "I build things with code and manage my blood sugars — sometimes at the same time. Living with Type 1 Diabetes since I was nine, this site features ",
+      "highlight": "real-time glucose and insulin data",
+      "after": " from my Freestyle Libre and Omnipod via Loop and Nightscout."
+    },
+    "cta": [
+      {
+        "label": "View Glucose Data",
+        "href": "/diabetes",
+        "emoji": "📊",
+        "variant": "default",
+        "external": false
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/hannah-austin1",
+        "emoji": "🐙",
+        "variant": "outline",
+        "external": true
+      },
+      {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/in/hannahaustin",
+        "emoji": "💼",
+        "variant": "outline",
+        "external": true
+      }
+    ]
+  },
+  "about": {
+    "sectionEmoji": "👤",
+    "sectionTitle": "About",
+    "paragraphs": [
+      {
+        "before": "I'm a developer who builds tools that matter (and things for fun). Living with ",
+        "highlight": "Type 1 Diabetes",
+        "after": " has shaped how I think about data, health tech, and open-source tools like Nightscout."
+      },
+      {
+        "before": "When I'm not coding, I'm watching my CGM, adjusting basals, and keeping that line ",
+        "highlight": "in range",
+        "after": "."
+      }
+    ],
+    "skills": [
+      {
+        "name": "TypeScript",
+        "emoji": "🔷"
+      },
+      {
+        "name": "React",
+        "emoji": "⚛️"
+      },
+      {
+        "name": "React Native",
+        "emoji": "📱"
+      },
+      {
+        "name": "Next.js",
+        "emoji": "▲"
+      },
+      {
+        "name": "Node.js",
+        "emoji": "🟢"
+      },
+      {
+        "name": "Python",
+        "emoji": "🐍"
+      },
+      {
+        "name": "Swift",
+        "emoji": "🔨"
+      },
+      {
+        "name": "PostgreSQL",
+        "emoji": "🐘"
+      },
+      {
+        "name": "Docker",
+        "emoji": "🐳"
+      },
+      {
+        "name": "Tailwind",
+        "emoji": "🎨"
+      },
+      {
+        "name": "Nightscout",
+        "emoji": "🌙"
+      },
+      {
+        "name": "T1D Life",
+        "emoji": "💉"
+      }
+    ],
+    "stats": [
+      {
+        "emoji": "💉",
+        "label": "Years with T1D",
+        "value": "25+"
+      },
+      {
+        "emoji": "📊",
+        "label": "Daily readings",
+        "value": "288"
+      },
+      {
+        "emoji": "☕",
+        "label": "Coffees consumed",
+        "value": "∞"
+      },
+      {
+        "emoji": "🚀",
+        "label": "Projects shipped",
+        "value": "10+"
+      }
+    ]
+  },
+  "projects": {
+    "sectionEmoji": "🚀",
+    "sectionTitle": "Projects",
+    "items": [
+      {
+        "title": "Glucose Roller Coaster",
+        "description": "An animated daily glucose visualization with physics-based car movement, carb/bolus markers, and Finch goal integration.",
+        "tags": [
+          "Next.js",
+          "Canvas API",
+          "Nightscout"
+        ],
+        "href": "/diabetes",
+        "emoji": "🎢",
+        "accentColor": "text-emerald-400"
+      },
+      {
+        "title": "Health Correlations",
+        "description": "Pearson correlation analysis between mood, steps, goal completion and glucose metrics.",
+        "tags": [
+          "TypeScript",
+          "Statistics",
+          "Data Viz"
+        ],
+        "href": "/diabetes",
+        "emoji": "📊",
+        "accentColor": "text-blue-400"
+      },
+      {
+        "title": "Finch Wellness",
+        "description": "Daily mood, goal completion streaks, and mental health check-ins synced from Finch via Firebase.",
+        "tags": [
+          "Firebase",
+          "Cloud Functions",
+          "React"
+        ],
+        "href": "/finch",
+        "emoji": "🐦",
+        "accentColor": "text-violet-400"
+      },
+      {
+        "title": "Apple Health Pipeline",
+        "description": "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore.",
+        "tags": [
+          "Apple HealthKit",
+          "Swift",
+          "Cloud Functions",
+          "Firestore"
+        ],
+        "href": "/health",
+        "emoji": "🏃",
+        "accentColor": "text-orange-400"
+      }
+    ]
+  }
+}

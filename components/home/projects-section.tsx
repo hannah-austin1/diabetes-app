@@ -4,47 +4,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Genmoji } from "./genmoji";
+import { Genmoji } from "@/components/shared/genmoji";
 import { ArrowRight } from "lucide-react";
+import homeData from "@/data/home.json";
 
-const projects = [
-  {
-    title: "Glucose Roller Coaster",
-    description:
-      "An animated daily glucose visualization with physics-based car movement, carb/bolus markers, and Finch goal integration.",
-    tags: ["Next.js", "Canvas API", "Nightscout"],
-    href: "/diabetes",
-    emoji: "🎢",
-    accentColor: "text-emerald-400",
-  },
-  {
-    title: "Health Correlations",
-    description:
-      "Pearson correlation analysis between mood, steps, goal completion and glucose metrics.",
-    tags: ["TypeScript", "Statistics", "Data Viz"],
-    href: "/diabetes",
-    emoji: "📊",
-    accentColor: "text-blue-400",
-  },
-  {
-    title: "Finch Wellness",
-    description:
-      "Daily mood, goal completion streaks, and mental health check-ins synced from Finch via Firebase.",
-    tags: ["Firebase", "Cloud Functions", "React"],
-    href: "/finch",
-    emoji: "🐦",
-    accentColor: "text-violet-400",
-  },
-  {
-    title: "Apple Health Pipeline",
-    description:
-      "Automated ingestion of steps, weight, and body composition from Apple Health into Firestore.",
-    tags: ["Cloud Functions", "Firestore", "HealthKit"],
-    href: "/health",
-    emoji: "🏃",
-    accentColor: "text-orange-400",
-  },
-];
+const { projects } = homeData;
 
 export function ProjectsSection() {
   return (
@@ -55,14 +19,14 @@ export function ProjectsSection() {
       transition={{ duration: 0.6 }}
     >
       <div className="flex items-center gap-3 mb-8">
-        <Genmoji emoji="🚀" size="md" />
+        <Genmoji emoji={projects.sectionEmoji} size="md" />
         <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
-          Projects
+          {projects.sectionTitle}
         </h2>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
-        {projects.map((project, index) => (
+        {projects.items.map((project, index) => (
           <motion.div
             key={project.title}
             initial={{ opacity: 0, y: 20 }}

@@ -2,9 +2,14 @@ import Link from "next/link";
 import { summarizeFinch, moodLabel, type DailySummary } from "@/lib/finch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PreviewHeader } from "@/components/shared/preview-header";
+import { SparkbarChart } from "@/components/shared/sparkbar-chart";
 import { getFinchData } from "@/lib/actions";
 import { ArrowRight } from "lucide-react";
 import { connection } from "next/server";
+import finchData from "@/data/finch.json";
+
+const { preview } = finchData;
 
 export async function FinchPreview() {
   await connection();
@@ -17,14 +22,15 @@ export async function FinchPreview() {
   const completionPct = Math.round(s.completionRate * 100);
   const recent = days.slice(-14);
 
+  const sparkbarData = recent.map((d) => ({
+    key: d.date,
+    value: d.completed_goals_count,
+    label: `${d.date}: ${d.completed_goals_count}/${d.scheduled_goals_count} goals`,
+  }));
+
   return (
     <section>
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-2xl">🐦</span>
-        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
-          Self-Care
-        </h2>
-      </div>
+      <PreviewHeader emoji={preview.emoji} title={preview.title} />
       <Link href="/finch" className="block group">
         <Card className="bg-card/50 border-border/50 card-interactive hover:border-border">
           <CardContent className="p-6">
@@ -33,7 +39,7 @@ export async function FinchPreview() {
                 <span className="text-5xl font-bold font-mono text-violet-400">
                   {s.currentStreak}
                 </span>
-                <span className="text-sm text-muted-foreground">day streak</span>
+                <span className="text-sm text-muted-foreground">{preview.streakUnit}</span>
               </div>
               <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
@@ -48,41 +54,14 @@ export async function FinchPreview() {
               )}
             </div>
 
-            <GoalSparkbars days={recent} />
+            <SparkbarChart
+              data={sparkbarData}
+              color="rgb(139, 92, 246)"
+              isZero={(item) => item.value === 0}
+            />
           </CardContent>
         </Card>
       </Link>
     </section>
-  );
-}
-
-function GoalSparkbars({ days }: { days: DailySummary[] }) {
-  if (days.length === 0) return null;
-  const max = Math.max(...days.map((d) => d.completed_goals_count), 1);
-
-  return (
-    <div className="flex items-end gap-1 h-10">
-      {days.map((d) => {
-        const heightPct = (d.completed_goals_count / max) * 100;
-        return (
-          <div
-            key={d.date}
-            className="flex-1 flex items-end"
-            title={`${d.date}: ${d.completed_goals_count}/${d.scheduled_goals_count} goals`}
-          >
-            <div
-              className="w-full rounded-sm"
-              style={{
-                height: `${Math.max(8, heightPct)}%`,
-                backgroundColor: d.completed_goals_count === 0
-                  ? "hsl(var(--muted))"
-                  : "rgb(139, 92, 246)",
-                opacity: d.completed_goals_count === 0 ? 0.3 : 0.7,
-              }}
-            />
-          </div>
-        );
-      })}
-    </div>
   );
 }

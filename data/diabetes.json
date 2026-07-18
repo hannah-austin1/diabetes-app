@@ -1,0 +1,55 @@
+{
+  "header": {
+    "statusLabel": "LIVE DATA FROM NIGHTSCOUT",
+    "title": "My Glucose Journey",
+    "description": "T1D since day one — real-time data from Nightscout. Every dip, climb, and in-range stretch."
+  },
+  "rollerCoaster": {
+    "title": "Yesterday",
+    "subtitle": "mmol/L · midnight to midnight"
+  },
+  "hourlyPatterns": {
+    "title": "When is Your Glucose Highest?",
+    "description": "Average glucose by hour of day over the last 30 days — spot your personal peaks and valleys.",
+    "highestHour": {
+      "emoji": "🌅",
+      "label": "Highest Hour"
+    },
+    "lowestHour": {
+      "emoji": "🌙",
+      "label": "Lowest Hour"
+    },
+    "spikyHours": {
+      "emoji": "🔥",
+      "label": "Top 3 Spiky Hours"
+    },
+    "calmestHours": {
+      "emoji": "😌",
+      "label": "3 Calmest Hours"
+    },
+    "chartLabel": "Average Glucose by Hour · 3.9–10.0 mmol/L target",
+    "legend": [
+      { "label": "In range (3.9–10.0)", "className": "bg-glucose-green" },
+      { "label": "High (>10.0)", "className": "bg-glucose-yellow" },
+      { "label": "Low (<3.9)", "className": "bg-glucose-orange" }
+    ]
+  },
+  "funStats": {
+    "title": "Fun Stats · Last 30 Days",
+    "labels": {
+      "coasterRides": { "emoji": "🎢", "label": "Coaster Rides", "sub": "in/out of range crossings", "color": "text-glucose-purple" },
+      "peakSummit": { "emoji": "🏔️", "label": "Peak Summit", "sub": "highest in 24h", "color": "text-red-400" },
+      "deepestValley": { "emoji": "🕳️", "label": "Deepest Valley", "sub": "lowest in 24h", "color": "text-glucose-blue" },
+      "inRange": { "emoji": "🎯", "label": "In Range", "color": "text-glucose-green" },
+      "highLaunches": { "emoji": "🚀", "label": "High Launches", "sub": "above 10.0 mmol/L", "color": "text-glucose-orange" },
+      "lowDips": { "emoji": "📉", "label": "Low Dips", "sub": "below 3.9 mmol/L", "color": "text-glucose-yellow" },
+      "average": { "emoji": "📊", "label": "24h Average", "sub": "mean over 24 hours", "color": "text-glucose-blue" },
+      "a1c": { "emoji": "🩸", "label": "Est. A1C", "sub": "estimated · 90-day avg", "color": "text-glucose-purple" }
+    }
+  },
+  "preview": {
+    "emoji": "📊",
+    "title": "Live Glucose",
+    "unit": "mmol/L"
+  }
+}

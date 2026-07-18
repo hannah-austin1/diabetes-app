@@ -2,40 +2,23 @@
 
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Genmoji } from "./genmoji";
+import { Genmoji } from "@/components/shared/genmoji";
+import homeData from "@/data/home.json";
 
-const skills = [
-  { name: "TypeScript", emoji: "🔷" },
-  { name: "React", emoji: "⚛️" },
-  { name: "Next.js", emoji: "▲" },
-  { name: "Node.js", emoji: "🟢" },
-  { name: "Python", emoji: "🐍" },
-  { name: "PostgreSQL", emoji: "🐘" },
-  { name: "Docker", emoji: "🐳" },
-  { name: "Tailwind", emoji: "🎨" },
-  { name: "Nightscout", emoji: "🌙" },
-  { name: "T1D Life", emoji: "💉" },
-];
-
-const stats = [
-  { emoji: "💉", label: "Years with T1D", value: "25+" },
-  { emoji: "📊", label: "Daily readings", value: "288" },
-  { emoji: "☕", label: "Coffees consumed", value: "∞" },
-  { emoji: "🚀", label: "Projects shipped", value: "10+" },
-];
+const { about } = homeData;
 
 export function AboutSection() {
   return (
     <motion.section
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
-      viewport={{ once: true, margin: "-100px" }}
+      viewport={{ once: true }}
       transition={{ duration: 0.6 }}
     >
       <div className="flex items-center gap-3 mb-8">
-        <Genmoji emoji="👤" size="md" />
+        <Genmoji emoji={about.sectionEmoji} size="md" />
         <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
-          About
+          {about.sectionTitle}
         </h2>
       </div>
 
@@ -46,15 +29,16 @@ export function AboutSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-            {"I'm a developer who builds tools that matter (and things for fun). Living with "}
-            <span className="text-primary font-medium">Type 1 Diabetes</span>
-            {" has shaped how I think about data, health tech, and open-source tools like Nightscout."}
-          </p>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {"When I'm not coding, I'm watching my CGM, adjusting basals, and keeping that line "}
-            <span className="text-primary font-medium">in range</span>.
-          </p>
+          {about.paragraphs.map((paragraph, index) => (
+            <p
+              key={index}
+              className={`text-lg text-muted-foreground leading-relaxed ${index < about.paragraphs.length - 1 ? "mb-4" : ""}`}
+            >
+              {paragraph.before}
+              <span className="text-primary font-medium">{paragraph.highlight}</span>
+              {paragraph.after}
+            </p>
+          ))}
         </motion.div>
 
         <motion.div
@@ -64,7 +48,7 @@ export function AboutSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {skills.map((skill, index) => (
+          {about.skills.map((skill, index) => (
             <motion.div
               key={skill.name}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -92,7 +76,7 @@ export function AboutSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        {stats.map((stat) => (
+        {about.stats.map((stat) => (
           <div
             key={stat.label}
             className="bg-card/50 rounded-xl p-5 text-center border border-border/50 card-interactive"

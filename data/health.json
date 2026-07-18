@@ -1,0 +1,30 @@
+{
+  "header": {
+    "statusLabelLive": "APPLE HEALTH · LIVE FROM FIREBASE",
+    "statusLabelWaiting": "APPLE HEALTH · WAITING FOR FIRST UPLOAD",
+    "title": "My Activity",
+    "description": "Apple Health metrics rolled up day-by-day. Whatever HealthKit categories my phone uploads end up here automatically."
+  },
+  "emptyState": {
+    "emoji": "⏳",
+    "title": "No Apple Health metrics yet",
+    "description": "The Firebase pipeline is reachable, but no HealthKit metrics have come through in the {days}-day window yet. Once the iOS Shortcut sends a Health snapshot, steps, energy, heart rate, and friends will show up here automatically."
+  },
+  "sections": {
+    "averages": "Averages over the period",
+    "dailyTrends": "Daily Trends"
+  },
+  "pipeline": {
+    "emoji": "🔌",
+    "title": "Pipeline",
+    "description": "Custom Swift Apple HealthKit app → Automated daily export using Firebase Cloud Function → Firestore → getFinchData → this page. Whatever HealthKit identifiers my phone pushes will appear above automatically — no per-metric config needed."
+  },
+  "nav": {
+    "left": { "label": "← Finch wellness", "href": "/finch" },
+    "right": { "label": "Glucose dashboard →", "href": "/diabetes" }
+  },
+  "preview": {
+    "emoji": "🏃",
+    "title": "Apple Health"
+  }
+}

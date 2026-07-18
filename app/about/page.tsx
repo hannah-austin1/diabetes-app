@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Genmoji } from "@/components/home/genmoji";
+import { Genmoji } from "@/components/shared/genmoji";
 import { AnimatedHeader } from "@/components/home/animated-section";
 import aboutData from "@/data/about.json";
 

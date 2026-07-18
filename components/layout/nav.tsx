@@ -7,13 +7,9 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LiveGlucoseBadge } from "./live-glucose-badge";
 import hannah from "@/public/hannah.png"
-const links = [
-  { href: "/", label: "Home", emoji: "🏠" },
-  { href: "/about", label: "About", emoji: "👩‍💻" },
-  { href: "/diabetes", label: "Glucose", emoji: "🎢" },
-  { href: "/health", label: "Health", emoji: "🏃" },
-  { href: "/finch", label: "Finch", emoji: "🐦" },
-];
+import navData from "@/data/nav.json";
+
+const { links, siteName, siteNameAccent } = navData;
 
 export function Nav() {
   const pathname = usePathname();
@@ -47,8 +43,8 @@ export function Nav() {
                 />
               </motion.span>
             </div>
-            hgjaustin
-            <span className="text-glucose-purple">.</span>
+            {siteName}
+            <span className="text-glucose-purple">{siteNameAccent}</span>
           </Link>
           <LiveGlucoseBadge />
         </div>

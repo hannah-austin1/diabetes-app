@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
+import navData from "@/data/nav.json";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -14,9 +15,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "hgjaustin — Developer & T1D Warrior",
-  description: "Developer portfolio showcasing projects, real-time glucose data, and the intersection of code and chronic illness management.",
+  title: navData.metadata.title,
+  description: navData.metadata.description,
 };
+
+const { footer } = navData;
 
 export default function RootLayout({
   children,
@@ -31,12 +34,12 @@ export default function RootLayout({
         <footer className="border-t border-border py-8 mt-16 bg-card/50">
           <div className="max-w-5xl mx-auto px-6 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-2">
-              <span>Built with</span>
-              <span className="inline-block hover:scale-125 transition-transform cursor-default">💜</span>
-              <span>using Next.js 16</span>
+              <span>{footer.builtWith}</span>
+              <span className="inline-block hover:scale-125 transition-transform cursor-default">{footer.emoji}</span>
+              <span>{footer.framework}</span>
             </div>
             <div className="text-xs text-muted-foreground/60">
-              React Server Components · Real-time Nightscout data · Lots of coffee
+              {footer.tagline}
             </div>
           </div>
         </footer>

@@ -6,9 +6,12 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { SectionHeader } from "@/components/shared/section-header";
+import { StatCard } from "@/components/shared/stat-card";
 import { getFinchData } from "@/lib/actions";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import finchContent from "@/data/finch.json";
 
 export default function FinchPage() {
   return (
@@ -35,14 +38,12 @@ async function FinchContent() {
   if (days.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-6 pt-28 pb-16">
-        <h1 className="text-4xl font-bold gradient-text mb-4">Finch Wellness</h1>
+        <h1 className="text-4xl font-bold gradient-text mb-4">{finchContent.emptyState.title}</h1>
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            <p className="text-lg mb-2">No Finch data available right now.</p>
+            <p className="text-lg mb-2">{finchContent.emptyState.message}</p>
             <p className="text-sm">
-              The <code className="text-foreground">getFinchData</code> Cloud Function
-              returned nothing — it may be cold-starting or temporarily unreachable.
-              Refresh in a minute.
+              {finchContent.emptyState.detail}
             </p>
           </CardContent>
         </Card>
@@ -59,73 +60,74 @@ async function FinchContent() {
   const firstDate = s.firstDate ? new Date(s.firstDate + "T00:00:00") : null;
   const lastDate = s.lastDate ? new Date(s.lastDate + "T00:00:00") : null;
 
+  const dateRange = firstDate && lastDate
+    ? `${firstDate.toLocaleDateString("en-GB")} – ${lastDate.toLocaleDateString("en-GB")}`
+    : undefined;
+
   // mood timeline (last 14 days with mood)
   const moodTimeline = days
     .filter((d) => d.mood)
     .slice(-14);
 
+  const statValues = [
+    {
+      ...finchContent.stats[0],
+      value: s.totalDays.toString(),
+      sub: firstDate && lastDate
+        ? `${firstDate.toLocaleDateString("en-GB", { month: "short", day: "numeric" })} – ${lastDate.toLocaleDateString("en-GB", { month: "short", day: "numeric" })}`
+        : "",
+    },
+    {
+      ...finchContent.stats[1],
+      value: s.currentStreak.toString(),
+      sub: `longest ${s.longestStreak} days`,
+    },
+    {
+      ...finchContent.stats[2],
+      value: s.totalGoalsCompleted.toLocaleString(),
+      sub: `${s.avgGoalsPerDay.toFixed(1)}/day avg`,
+    },
+    {
+      ...finchContent.stats[3],
+      value: s.totalGoodVibes.toLocaleString(),
+    },
+  ];
+
+  const { sections } = finchContent;
+
   return (
     <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <div className="w-3 h-3 rounded-full bg-glucose-purple animate-pulse" />
-          <span className="text-sm text-muted-foreground font-mono">
-            FROM FIREBASE
-            {firstDate && lastDate && (
-              <> · {firstDate.toLocaleDateString()} – {lastDate.toLocaleDateString()}</>
-            )}
-          </span>
-        </div>
-        <h1 className="text-5xl font-bold gradient-text mb-3">Finch Wellness</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          Daily self-care, reflections, and good vibes from Finch — built using a custom Apple shortcut that uploads the backup to Firebase - I reverse engineered the Hive database files to get the schema and wrote a Typescript script to parse it!
-        </p>
-      </div>
+      <SectionHeader
+        statusColor={finchContent.header.statusColor}
+        statusLabel={finchContent.header.statusLabel}
+        dateRange={dateRange}
+        title={finchContent.header.title}
+        description={finchContent.header.description}
+      />
 
       {/* Headline stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        <StatCard
-          emoji="📅"
-          label="Days Tracked"
-          value={s.totalDays.toString()}
-          sub={firstDate && lastDate
-            ? `${firstDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${lastDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
-            : ""
-          }
-          color="text-glucose-blue"
-        />
-        <StatCard
-          emoji="🔥"
-          label="Check-In Streak"
-          value={s.currentStreak.toString()}
-          sub={`longest ${s.longestStreak} days`}
-          color="text-glucose-orange"
-        />
-        <StatCard
-          emoji="✅"
-          label="Goals Completed"
-          value={s.totalGoalsCompleted.toLocaleString()}
-          sub={`${s.avgGoalsPerDay.toFixed(1)}/day avg`}
-          color="text-glucose-green"
-        />
-        <StatCard
-          emoji="💛"
-          label="Good Vibes"
-          value={s.totalGoodVibes.toLocaleString()}
-          sub="sent to friends"
-          color="text-glucose-yellow"
-        />
+        {statValues.map((stat) => (
+          <StatCard
+            key={stat.label}
+            emoji={stat.emoji}
+            label={stat.label}
+            value={stat.value}
+            sub={stat.sub}
+            color={stat.color}
+          />
+        ))}
       </div>
 
       {/* Completion + check-in */}
       <Card className="mb-10">
         <CardHeader>
-          <h2 className="text-xl font-bold text-foreground">Goal Completion</h2>
+          <h2 className="text-xl font-bold text-foreground">{sections.goalCompletion.title}</h2>
         </CardHeader>
         <CardContent className="space-y-5">
           <div>
             <div className="flex justify-between mb-1.5 text-sm">
-              <span className="text-muted-foreground">Goals completed vs scheduled</span>
+              <span className="text-muted-foreground">{sections.goalCompletion.goalsLabel}</span>
               <span className="font-mono font-bold text-foreground">
                 {s.totalGoalsCompleted.toLocaleString()} / {s.totalGoalsScheduled.toLocaleString()} ({completionPct}%)
               </span>
@@ -134,7 +136,7 @@ async function FinchContent() {
           </div>
           <div>
             <div className="flex justify-between mb-1.5 text-sm">
-              <span className="text-muted-foreground">Days I actually checked in</span>
+              <span className="text-muted-foreground">{sections.goalCompletion.checkInLabel}</span>
               <span className="font-mono font-bold text-foreground">
                 {s.daysWithCheckIn} / {s.totalDays} ({checkInPct}%)
               </span>
@@ -149,8 +151,8 @@ async function FinchContent() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🌬️</span>
-              <h3 className="font-bold text-foreground">Breathing</h3>
+              <span className="text-2xl">{sections.activities.breathing.emoji}</span>
+              <h3 className="font-bold text-foreground">{sections.activities.breathing.title}</h3>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -166,8 +168,8 @@ async function FinchContent() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">📝</span>
-              <h3 className="font-bold text-foreground">Reflections</h3>
+              <span className="text-2xl">{sections.activities.reflections.emoji}</span>
+              <h3 className="font-bold text-foreground">{sections.activities.reflections.title}</h3>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -183,8 +185,8 @@ async function FinchContent() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🌈</span>
-              <h3 className="font-bold text-foreground">Mood</h3>
+              <span className="text-2xl">{sections.activities.mood.emoji}</span>
+              <h3 className="font-bold text-foreground">{sections.activities.mood.title}</h3>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
@@ -204,7 +206,7 @@ async function FinchContent() {
       {moodTimeline.length > 0 && (
         <Card className="mb-10">
           <CardHeader>
-            <h2 className="text-xl font-bold text-foreground">Recent Mood</h2>
+            <h2 className="text-xl font-bold text-foreground">{sections.recentMood.title}</h2>
           </CardHeader>
           <CardContent>
             <div className="flex items-end gap-2 overflow-x-auto pb-2">
@@ -224,7 +226,7 @@ async function FinchContent() {
                       />
                     </div>
                     <div className="text-[10px] font-mono text-muted-foreground">
-                      {d.date.slice(5)}
+                      {`${d.date.slice(8)}/${d.date.slice(5, 7)}`}
                     </div>
                     <div className="text-[10px] text-foreground/70">{d.mood!.label}</div>
                   </div>
@@ -239,7 +241,7 @@ async function FinchContent() {
       <div className="grid md:grid-cols-2 gap-4 mb-10">
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-bold text-foreground">Most-Completed Goals</h2>
+            <h2 className="text-lg font-bold text-foreground">{sections.topGoals.title}</h2>
           </CardHeader>
           <CardContent className="pt-0">
             {s.topGoals.length > 0 ? (
@@ -257,14 +259,14 @@ async function FinchContent() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground">No goals logged yet.</p>
+              <p className="text-sm text-muted-foreground">{sections.topGoals.empty}</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-bold text-foreground">Self-Care Areas</h2>
+            <h2 className="text-lg font-bold text-foreground">{sections.selfCareAreas.title}</h2>
           </CardHeader>
           <CardContent className="pt-0">
             {s.areaCounts.length > 0 ? (
@@ -290,7 +292,7 @@ async function FinchContent() {
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Goals haven&apos;t been tagged with self-care areas yet.
+                {sections.selfCareAreas.empty}
               </p>
             )}
           </CardContent>
@@ -299,40 +301,13 @@ async function FinchContent() {
 
       {/* Quick nav */}
       <div className="flex gap-4 text-sm">
-        <Link href="/diabetes" className="text-primary hover:underline">
-          ← Glucose dashboard
+        <Link href={finchContent.nav.left.href} className="text-primary hover:underline">
+          {finchContent.nav.left.label}
         </Link>
-        <Link href="/health" className="text-primary hover:underline">
-          Apple Health →
+        <Link href={finchContent.nav.right.href} className="text-primary hover:underline">
+          {finchContent.nav.right.label}
         </Link>
       </div>
     </div>
-  );
-}
-
-function StatCard({
-  emoji,
-  label,
-  value,
-  sub,
-  color,
-}: {
-  emoji: string;
-  label: string;
-  value: string;
-  sub: string;
-  color: string;
-}) {
-  return (
-    <Card className="hover:border-primary/30 transition-all duration-300 group">
-      <CardContent className="p-5">
-        <div className="text-3xl mb-3 group-hover:scale-110 transition-transform inline-block">
-          {emoji}
-        </div>
-        <div className={`text-2xl font-bold font-mono ${color} mb-1`}>{value}</div>
-        <div className="text-xs font-semibold text-foreground mb-1">{label}</div>
-        <div className="text-xs text-muted-foreground">{sub}</div>
-      </CardContent>
-    </Card>
   );
 }

@@ -2,9 +2,14 @@ import Link from "next/link";
 import { rollupHealth, healthLabel } from "@/lib/finch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PreviewHeader } from "@/components/shared/preview-header";
+import { SparkbarChart } from "@/components/shared/sparkbar-chart";
 import { getFinchData } from "@/lib/actions";
 import { ArrowRight } from "lucide-react";
 import { connection } from "next/server";
+import healthData from "@/data/health.json";
+
+const { preview } = healthData;
 
 export async function HealthPreview() {
   await connection();
@@ -18,14 +23,15 @@ export async function HealthPreview() {
   const meta = healthLabel(primary.key);
   const recent = primary.perDay.slice(-14);
 
+  const sparkbarData = recent.map((d) => ({
+    key: d.date,
+    value: d.value,
+    label: `${d.date}: ${d.value.toLocaleString()}`,
+  }));
+
   return (
     <section>
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-2xl">🏃</span>
-        <h2 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
-          Apple Health
-        </h2>
-      </div>
+      <PreviewHeader emoji={preview.emoji} title={preview.title} />
       <Link href="/health" className="block group">
         <Card className="bg-card/50 border-border/50 card-interactive hover:border-border">
           <CardContent className="p-6">
@@ -44,39 +50,13 @@ export async function HealthPreview() {
               <Badge variant="secondary">{primary.daysWithData} days tracked</Badge>
             </div>
             
-            <HealthSparkbars recent={recent} />
+            <SparkbarChart
+              data={sparkbarData}
+              color="rgb(249, 115, 22)"
+            />
           </CardContent>
         </Card>
       </Link>
     </section>
-  );
-}
-
-function HealthSparkbars({ recent }: { recent: { date: string; value: number }[] }) {
-  if (recent.length === 0) return null;
-  const max = Math.max(...recent.map((d) => d.value), 1);
-  
-  return (
-    <div className="flex items-end gap-1 h-10">
-      {recent.map((d) => {
-        const heightPct = (d.value / max) * 100;
-        return (
-          <div
-            key={d.date}
-            className="flex-1 flex items-end"
-            title={`${d.date}: ${d.value.toLocaleString()}`}
-          >
-            <div
-              className="w-full rounded-sm"
-              style={{
-                height: `${Math.max(8, heightPct)}%`,
-                backgroundColor: "rgb(249, 115, 22)",
-                opacity: 0.7,
-              }}
-            />
-          </div>
-        );
-      })}
-    </div>
   );
 }
