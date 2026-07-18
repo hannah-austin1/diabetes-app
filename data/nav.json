@@ -2,11 +2,36 @@
   "siteName": "hgjaustin",
   "siteNameAccent": ".",
   "links": [
-    { "href": "/", "label": "Home", "emoji": "🏠" },
-    { "href": "/about", "label": "About", "emoji": "👩‍💻" },
-    { "href": "/diabetes", "label": "Glucose", "emoji": "🎢" },
-    { "href": "/health", "label": "Health", "emoji": "🏃" },
-    { "href": "/finch", "label": "Finch", "emoji": "🐦" }
+    {
+      "href": "/",
+      "label": "Home",
+      "emoji": "🏠"
+    },
+    {
+      "href": "/about",
+      "label": "About",
+      "emoji": "👩‍💻"
+    },
+    {
+      "href": "/diabetes",
+      "label": "Glucose",
+      "emoji": "🎢"
+    },
+    {
+      "href": "/health",
+      "label": "Health",
+      "emoji": "🏃"
+    },
+    {
+      "href": "/finch",
+      "label": "Finch",
+      "emoji": "🐦"
+    },
+    {
+      "href": "/code-examples",
+      "label": "Side Projects",
+      "emoji": "💻"
+    }
   ],
   "metadata": {
     "title": "hgjaustin — Developer & T1D Warrior",

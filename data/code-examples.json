@@ -1,0 +1,56 @@
+{
+  "header": {
+    "statusLabel": "PORTFOLIO",
+    "statusColor": "bg-glucose-blue",
+    "title": "Side Projects",
+    "description": "A showcase of my personal projects, features, and technical work. I enjoy creating silly apps to enhance my learning, and reverse engineering things to understand how they work."
+  },
+  "examples": [
+    {
+      "id": "emojigraph",
+      "label": "Emojigraph",
+      "emoji": "✨",
+      "title": "Emojigraph — iOS Genmoji & AI Image App",
+      "description": "A native SwiftUI app that lets you create, collect, and share custom Genmoji using Apple's Image Playground API. Features on-device image generation via Core ML Stable Diffusion, daily themed challenges with SwiftData persistence, a Customoji local Swift package, Supabase backend, and Ollama-powered profile analysis tools. Supports iOS, iPadOS, and Mac Catalyst.",
+      "tags": [
+        "Swift 6",
+        "SwiftUI",
+        "SwiftData",
+        "Image Playground",
+        "Stable Diffusion",
+        "Core ML",
+        "Supabase",
+        "Ollama"
+      ],
+      "media": [
+        {
+          "type": "video",
+          "src": "/emojigraph.mp4",
+          "alt": "Emojigraph app demo"
+        }
+      ]
+    },
+    {
+      "id": "small-joys",
+      "label": "Small Joys",
+      "emoji": "🪷",
+      "title": "Small Joys iOS Widget",
+      "description": "A simple iOS widget that provides daily positive affirmations and small, actionable joy tasks (like noticing lovely things outside or texting a friend) to foster resilience, connection, and self-care. Powered by Apple Intelligence, it personalises the affirmations based on the users mood, strengths and interests.",
+      "tags": [
+        "SwiftUI",
+        "Apple Intelligence",
+        "Core ML",
+        "AppIntents",
+        "WidgetKit",
+        "Intents Framework"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/SmallJoys.png",
+          "alt": "SmallJoys widget"
+        }
+      ]
+    }
+  ]
+}
