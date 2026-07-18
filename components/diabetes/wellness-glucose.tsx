@@ -115,15 +115,15 @@ export function WellnessGlucose({ glucoseDays, finchDays }: Props) {
                   <div className="flex items-center gap-2">
                     {steps !== null ? (
                       <>
+                        <span className="text-[10px] font-mono text-muted-foreground w-14 shrink-0">
+                          {steps.toLocaleString()}
+                        </span>
                         <div className="flex-1 h-2 rounded-full bg-secondary/40 overflow-hidden">
                           <div
                             className="h-full bg-glucose-green/80"
                             style={{ width: `${Math.max(2, stepsPct)}%` }}
                           />
                         </div>
-                        <span className="text-[10px] font-mono text-muted-foreground w-14 text-right">
-                          {steps.toLocaleString()}
-                        </span>
                       </>
                     ) : (
                       <span className="text-muted-foreground/40 text-xs">—</span>

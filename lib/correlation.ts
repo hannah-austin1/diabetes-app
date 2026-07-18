@@ -206,9 +206,9 @@ function phraseTakeaway(
         ? "moderate"
         : "slight";
   if (directionalR > 0) {
-    return `${strength} link: on ${cohort}, you see ${positivePhrase}.`;
+    return `${strength} link: on ${cohort}, I see ${positivePhrase}.`;
   }
-  return `${strength} link: on ${cohort}, you see ${negativePhrase}.`;
+  return `${strength} link: on ${cohort}, I see ${negativePhrase}.`;
 }
 
 // ── Cohort / tertile analysis ────────────────────────────────────────────────

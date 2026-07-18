@@ -78,8 +78,7 @@ async function FinchContent() {
         </div>
         <h1 className="text-5xl font-bold gradient-text mb-3">Finch Wellness</h1>
         <p className="text-muted-foreground max-w-2xl">
-          Daily self-care, reflections, and good vibes from Finch — synced live
-          via a Cloud Function that pulls fresh data from my phone.
+          Daily self-care, reflections, and good vibes from Finch — built using a custom Apple shortcut that uploads the backup to Firebase - I reverse engineered the Hive database files to get the schema and wrote a Typescript script to parse it!
         </p>
       </div>
 

@@ -47,7 +47,7 @@ export function AboutSection() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <p className="text-lg text-muted-foreground leading-relaxed mb-4">
-            {"I'm a developer who builds tools that matter. Living with "}
+            {"I'm a developer who builds tools that matter (and things for fun). Living with "}
             <span className="text-primary font-medium">Type 1 Diabetes</span>
             {" has shaped how I think about data, health tech, and open-source tools like Nightscout."}
           </p>

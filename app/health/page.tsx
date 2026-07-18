@@ -132,7 +132,7 @@ function MetricChart({ m }: { m: HealthRollup }) {
             <span>{m.emoji}</span> {m.label}
           </CardTitle>
           <Badge variant="secondary" className="font-mono text-[10px]">
-            total {Math.round(m.total).toLocaleString()} {m.unit}
+            avg {m.avg >= 10 ? Math.round(m.avg).toLocaleString() : m.avg.toFixed(1)} {m.unit}/day
           </Badge>
         </div>
       </CardHeader>
@@ -313,7 +313,7 @@ async function HealthContent() {
             <div className="flex-1">
               <h3 className="font-semibold text-foreground mb-1">Pipeline</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                Apple Health → iOS Shortcut → Cloud Function → Firestore →{" "}
+                Custom Swift Apple HealthKit app → Automated daily export using Firebase Cloud Function → Firestore →{" "}
                 <code className="text-foreground">getFinchData</code> → this page.
                 Whatever HealthKit identifiers my phone pushes will appear above
                 automatically — no per-metric config needed.

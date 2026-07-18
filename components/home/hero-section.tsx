@@ -9,19 +9,6 @@ import { Genmoji } from "./genmoji";
 export function HeroSection() {
   return (
     <section className="relative text-center py-16 min-h-[75vh] flex flex-col justify-center">
-      {/* Status badge */}
-      <motion.div
-        className="flex justify-center mb-10"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Badge variant="outline" className="gap-2 px-4 py-2 text-sm bg-card/50 backdrop-blur-sm border-border/50">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse inline-block" />
-          available for projects
-        </Badge>
-      </motion.div>
-
       {/* Main heading */}
       <motion.div
         className="relative mb-8"
@@ -48,11 +35,11 @@ export function HeroSection() {
         </span>
         <span className="text-muted-foreground/30">|</span>
         <span className="text-lg text-muted-foreground flex items-center gap-2">
-          <Genmoji emoji="🩸" size="sm" /> T1D Warrior
+          <Genmoji emoji="🩸" size="sm" /> Bionic Pancreas Wearer
         </span>
         <span className="text-muted-foreground/30">|</span>
         <span className="text-lg text-muted-foreground flex items-center gap-2">
-          <Genmoji emoji="🛠️" size="sm" /> Builder
+          <Genmoji emoji="💃" size="sm" /> People-Focused Technology Leader
         </span>
       </motion.div>
 
@@ -64,8 +51,8 @@ export function HeroSection() {
         transition={{ delay: 0.4, duration: 0.5 }}
       >
         I build things with code and manage my blood sugars — sometimes at the same time.
-        Living with Type 1 Diabetes since birth, this site features{" "}
-        <span className="text-primary font-medium">real-time glucose data</span> from my CGM.
+        Living with Type 1 Diabetes since I was nine, this site features{" "}
+        <span className="text-primary font-medium">real-time glucose and insulin data</span> from my Freestyle Libre and Omnipod via Loop and Nightscout.
       </motion.p>
 
       {/* CTA buttons */}

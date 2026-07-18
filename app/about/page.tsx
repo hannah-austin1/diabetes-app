@@ -6,27 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Genmoji } from "@/components/home/genmoji";
 import { AnimatedHeader } from "@/components/home/animated-section";
-
-const skills = [
-  { name: "TypeScript", emoji: "🔷" },
-  { name: "React", emoji: "⚛️" },
-  { name: "React Native", emoji: "📱" },
-  { name: "Next.js", emoji: "▲" },
-  { name: "Node.js", emoji: "🟢" },
-  { name: "GraphQL", emoji: "◈" },
-  { name: "AWS", emoji: "☁️" },
-  { name: "AWS Lambda", emoji: "λ" },
-  { name: "Docker", emoji: "🐳" },
-  { name: "Kubernetes", emoji: "⎈" },
-  { name: "Jenkins", emoji: "🧰" },
-  { name: "Red Hat OpenShift", emoji: "🎩" },
-  { name: "Google Cloud", emoji: "🌥️" },
-  { name: "SQL", emoji: "🗄️" },
-  { name: "Webpack", emoji: "📦" },
-  { name: "Jest / RTL", emoji: "🧪" },
-  { name: "WebDriverIO", emoji: "🚦" },
-  { name: "Agile / SAFe", emoji: "🌀" },
-];
+import aboutData from "@/data/about.json";
 
 interface Role {
   title: string;
@@ -46,118 +26,24 @@ interface Company {
   subroles?: Role[];
 }
 
-const companies: Company[] = [
-  {
-    name: "IBM",
-    role: "Technical Lead → Senior App Developer → Consultant",
-    emoji: "💙",
-    accent: "text-glucose-blue",
-    period: "2019 — Present · 6 yrs 7 mos",
-    location: "London, UK",
-    blurb:
-      "Led teams shipping production software for energy, banking and sustainability clients — currently heading up a global EV charging app.",
-    subroles: [
-      {
-        title: "Technical Lead",
-        period: "Oct 2022 — Present",
-        bullets: [
-          "Leading a team of senior developers on a global EV charging app",
-          "Assigning work, enforcing coding standards, running standups & agile ceremonies",
-          "Onboarding and mentoring junior engineers across the team",
-        ],
-      },
-      {
-        title: "Senior Application Developer",
-        period: "Mar 2022 — Present",
-        bullets: [
-          "Built EV charging app for iOS & Android in React Native + TypeScript",
-          "Architected a Microfrontend setup for scalability across squads",
-          "Designed GraphQL schemas / resolvers with complex business logic",
-          "Owned AWS pipelines, deployment, and service management",
-        ],
-      },
-      {
-        title: "Technology Consultant",
-        period: "Nov 2019 — Mar 2022",
-        bullets: [
-          "Created a GraphQL Proof of Concept and pitched it to senior client leadership",
-          "Designed and built an SDK + UI component library (React / TypeScript) that cut delivery time",
-          "Authored the unit testing strategy and partnered with QAs on WebDriverIO E2E coverage",
-          "Shipped a production web app from zero in just six weeks",
-        ],
-      },
-    ],
-  },
-  {
-    name: "Bauer Media",
-    role: "Broadcast Engineer",
-    emoji: "📻",
-    accent: "text-glucose-purple",
-    period: "Apr 2017 — Apr 2019 · 2 yrs",
-    location: "London, UK",
-    blurb:
-      "Kept 16+ radio stations on air around the clock, ran projects end-to-end, and snuck in some early code along the way.",
-    bullets: [
-      "Built an off-air alerting system in Node.js + MySQL that texted, called and Slacked the team when a station dropped",
-      "Delivered a brand-new video router install end-to-end — planning, purchasing, troubleshooting",
-      "Converted a meeting room into a working radio studio in 4 weeks (touchscreen mixer & all)",
-      "Refurbished the Kiss FM and Absolute Radio studios",
-    ],
-  },
-  {
-    name: "BBC",
-    role: "Apprentice → ViLoR Project Engineer",
-    emoji: "🎙️",
-    accent: "text-glucose-green",
-    period: "Sep 2013 — Apr 2017 · 3 yrs 8 mos",
-    location: "Birmingham · Southampton · MediaCityUK",
-    blurb:
-      "Engineering apprenticeship across the BBC — local radio, distribution, network radio, sport — culminating in a place on the ViLoR rollout team.",
-    bullets: [
-      "Configured and tested BNCS control systems for ViLoR sites going live",
-      "Built a transmitter fault-finder for BBC Distribution using Google Maps API + PHP + MySQL as my dissertation",
-      "Trained as a VERV broadcast vehicle operator and supported numerous Outside Broadcasts",
-    ],
-  },
-];
+const accentMap: Record<string, string> = {
+  IBM: "text-glucose-blue",
+  "Bauer Media": "text-glucose-purple",
+  BBC: "text-glucose-green",
+};
 
-const certifications = [
-  { name: "Certified SAFe® 6 Agilist", emoji: "🌀" },
-  { name: "Enterprise Design Thinking Practitioner", emoji: "💡" },
-  { name: "Docker Essentials", emoji: "🐳" },
-  { name: "Watson and Cloud Foundations", emoji: "☁️" },
-  { name: "Be Equal Ally", emoji: "🤝" },
-];
+const honorAccentMap: Record<string, string> = {
+  "MCA Awards — Rising Star": "text-glucose-yellow",
+  "Radio Academy 30 under 30": "text-glucose-orange",
+};
 
-const honors = [
-  {
-    title: "MCA Awards — Rising Star",
-    sub: "Finalist · 2021",
-    emoji: "🌟",
-    accent: "text-glucose-yellow",
-  },
-  {
-    title: "Radio Academy 30 under 30",
-    sub: "Recognition",
-    emoji: "🏆",
-    accent: "text-glucose-orange",
-  },
-];
+const { profile, experience, skills, certifications, honors, education } = aboutData;
 
-const education = [
-  {
-    school: "The University of Salford",
-    degree: "BEng Broadcast Engineering",
-    period: "2013 — 2016",
-    emoji: "🎓",
-  },
-  {
-    school: "University of Warwick",
-    degree: "BSc Discrete Mathematics — Maths & Computer Science",
-    period: "2011 — 2013",
-    emoji: "📐",
-  },
-];
+const companies: Company[] = experience.map((e) => ({
+  ...e,
+  accent: accentMap[e.name] ?? "text-primary",
+}));
+
 
 export default function AboutPage() {
   return (
@@ -192,15 +78,11 @@ export default function AboutPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25, duration: 0.5 }}
         >
-          <Badge variant="outline" className="gap-2 px-3 py-1.5 bg-card/50 border-border/50">
-            <span>📍</span> Salisbury, UK
-          </Badge>
-          <Badge variant="outline" className="gap-2 px-3 py-1.5 bg-card/50 border-border/50">
-            <span>💼</span> @ IBM since 2019
-          </Badge>
-          <Badge variant="outline" className="gap-2 px-3 py-1.5 bg-card/50 border-border/50">
-            <span>🌟</span> MCA Rising Star Finalist
-          </Badge>
+          {profile.badges.map((badge) => (
+            <Badge key={badge} variant="outline" className="gap-2 px-3 py-1.5 bg-card/50 border-border/50">
+              {badge}
+            </Badge>
+          ))}
         </motion.div>
 
         <motion.div
@@ -210,23 +92,9 @@ export default function AboutPage() {
           transition={{ delay: 0.35, duration: 0.5 }}
         >
           <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
-            <p>
-              {"I'm a creative, motivated software engineer who's spent the last few years building web and mobile apps across "}
-              <span className="text-primary font-medium">industrial, banking, sustainability and healthcare</span>
-              {" — most recently leading a team building a global "}
-              <span className="text-glucose-green font-medium">EV charging app</span>{" "}
-              at IBM.
-            </p>
-            <p>
-              {"My day-to-day stack is React / React Native / TypeScript on the front, Node + GraphQL on the back, and AWS underneath. I care a lot about "}
-              <span className="text-glucose-purple font-medium">how teams work together</span>
-              {" — coding standards, agile ways of working, and lifting up the people around me."}
-            </p>
-            <p>
-              {"Before software, I trained as a "}
-              <span className="text-glucose-orange font-medium">broadcast engineer</span>
-              {" through an apprenticeship at the BBC and a first-class BEng — keeping 16+ radio stations on the air taught me how to ship under pressure."}
-            </p>
+            {profile.bio.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
           </div>
 
           <Card className="bg-card/50 border-border/50">
@@ -235,17 +103,17 @@ export default function AboutPage() {
                 Quick facts
               </p>
               <div className="space-y-3 text-sm">
-                <FactRow emoji="🏢" label="Currently" value="Technical Lead, IBM" />
-                <FactRow emoji="📅" label="Years in tech" value="6+" />
-                <FactRow emoji="🛠️" label="Last shipped" value="Global EV charging app" />
-                <FactRow emoji="🎢" label="T1D since" value="Day one" />
-                <FactRow emoji="📜" label="Certifications" value="5" />
+                <FactRow emoji="🏢" label="Currently" value={profile.quickFacts.currently} />
+                <FactRow emoji="📅" label="Years in tech" value={profile.quickFacts.yearsInTech} />
+                <FactRow emoji="🛠️" label="Last shipped" value={profile.quickFacts.lastShipped} />
+                <FactRow emoji="🎢" label="T1D since" value={profile.quickFacts.t1dSince} />
+                <FactRow emoji="📜" label="Certifications" value={profile.quickFacts.certifications} />
               </div>
 
               <div className="flex flex-wrap gap-2 mt-5">
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
                   <a
-                    href="https://www.linkedin.com/in/hannahaustin"
+                    href={profile.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -254,7 +122,7 @@ export default function AboutPage() {
                   </a>
                 </Button>
                 <Button asChild size="sm" variant="outline" className="gap-1.5">
-                  <a href="mailto:hannah.austin@hotmail.co.uk">
+                  <a href={`mailto:${profile.email}`}>
                     <Genmoji emoji="✉️" size="sm" interactive={false} />
                     Email
                   </a>
@@ -421,7 +289,7 @@ export default function AboutPage() {
                 <CardContent className="p-5 flex items-center gap-4">
                   <Genmoji emoji={h.emoji} size="lg" />
                   <div>
-                    <div className={`text-base font-bold ${h.accent}`}>{h.title}</div>
+                    <div className={`text-base font-bold ${honorAccentMap[h.title] ?? "text-primary"}`}>{h.title}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">{h.sub}</div>
                   </div>
                 </CardContent>
