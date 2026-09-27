@@ -1,6 +1,62 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
+const RESEND_API_URL = "https://api.resend.com";
+const FORWARD_TO = "hgjaustin@gmail.com";
+
+function getApiKey() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("Missing RESEND_API_KEY.");
+  return key;
+}
+
+async function resendGet<T>(path: string): Promise<T> {
+  const response = await fetch(`${RESEND_API_URL}${path}`, {
+    headers: { Authorization: `Bearer ${getApiKey()}` },
+    cache: "no-store",
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(
+      typeof body?.message === "string"
+        ? body.message
+        : `Resend GET failed: ${response.status}`,
+    );
+  }
+  return body as T;
+}
+
+async function resendSend(email: {
+  from: string;
+  to: string[];
+  subject: string;
+  text?: string;
+  html?: string;
+  reply_to?: string[];
+  attachments?: Array<{ path: string; filename: string }>;
+}) {
+  const response = await fetch(`${RESEND_API_URL}/emails`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getApiKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(email),
+    cache: "no-store",
+  });
+
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(
+      typeof body?.message === "string"
+        ? body.message
+        : `Resend send failed: ${response.status}`,
+    );
+  }
+  return body;
+}
+
 function verifyResendWebhook(payload: string, headers: Headers) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   if (!secret) throw new Error("Missing RESEND_WEBHOOK_SECRET.");
@@ -21,9 +77,29 @@ function verifyResendWebhook(payload: string, headers: Headers) {
   return signatureHeader.split(" ").some((value) => {
     const signature = Buffer.from(value.replace(/^v1,/, ""));
     const expectedBytes = Buffer.from(expected);
-    return signature.length === expectedBytes.length &&
-      timingSafeEqual(signature, expectedBytes);
+    return (
+      signature.length === expectedBytes.length &&
+      timingSafeEqual(signature, expectedBytes)
+    );
   });
+}
+
+interface ReceivedEmail {
+  id: string;
+  from: string;
+  to?: string[];
+  cc?: string[];
+  subject?: string;
+  html?: string | null;
+  text?: string | null;
+  reply_to?: string[] | null;
+  message_id?: string | null;
+}
+
+interface ReceivedAttachment {
+  filename: string;
+  content_type?: string;
+  download_url?: string;
 }
 
 export async function POST(request: Request) {
@@ -33,27 +109,71 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid webhook signature." }, { status: 401 });
   }
 
-  const event = JSON.parse(payload);
+  try {
+    const event = JSON.parse(payload);
 
-  switch (event?.type) {
-    case "email.received":
-      console.info("Resend inbound email", {
-        emailId: event.data?.email_id ?? null,
-        messageId: event.data?.message_id ?? null,
-        from: event.data?.from ?? null,
-        subject: event.data?.subject ?? null,
+    if (event?.type === "email.received" && event.data?.email_id) {
+      const emailId = String(event.data.email_id);
+
+      // The webhook contains metadata; retrieve the actual received email first.
+      const email = await resendGet<ReceivedEmail>(
+        `/emails/receiving/${encodeURIComponent(emailId)}`,
+      );
+
+      // Retrieve attachment download URLs so the forwarded message can include them.
+      let attachments: Array<{ path: string; filename: string }> = [];
+      try {
+        const result = await resendGet<{ data?: ReceivedAttachment[] }>(
+          `/emails/receiving/${encodeURIComponent(emailId)}/attachments`,
+        );
+        attachments = (result.data ?? [])
+          .filter((a) => a.download_url && a.filename)
+          .map((a) => ({
+            path: a.download_url!,
+            filename: a.filename,
+          }));
+      } catch (error) {
+        // Don't lose the email if attachment retrieval fails.
+        console.error("Could not retrieve inbound attachments", error);
+      }
+
+      const subject = email.subject?.trim() || "(no subject)";
+      const originalFrom = email.from || "unknown sender";
+      const bodyText =
+        email.text?.trim() ||
+        "This email did not contain a plain-text body. See the HTML version below.";
+
+      await resendSend({
+        from: process.env.EMAIL_FROM ?? "Diabetes App <onboarding@resend.dev>",
+        to: [FORWARD_TO],
+        subject: `Fwd: ${subject}`,
+        text: [
+          `---------- Forwarded email ----------`,
+          `From: ${originalFrom}`,
+          `To: ${(email.to ?? []).join(", ") || "unknown"}`,
+          `Date: ${event.created_at ?? "unknown"}`,
+          `Subject: ${subject}`,
+          "",
+          bodyText,
+        ].join("\n"),
+        ...(email.html ? { html: email.html } : {}),
+        ...(email.reply_to?.length
+          ? { reply_to: email.reply_to }
+          : { reply_to: [originalFrom] }),
+        ...(attachments.length ? { attachments } : {}),
       });
-      break;
-    case "email.delivered":
-    case "email.bounced":
-    case "email.complained":
-    case "email.suppressed":
-      console.info("Resend email event", {
-        type: event.type,
-        emailId: event.data?.email_id ?? null,
+
+      console.info("Forwarded inbound Resend email", {
+        emailId,
+        to: FORWARD_TO,
+        subject,
+        attachmentCount: attachments.length,
       });
-      break;
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error("Resend inbound forwarding failed", error);
+    return NextResponse.json({ error: "Inbound email forwarding failed." }, { status: 500 });
   }
-
-  return NextResponse.json({ received: true });
 }
