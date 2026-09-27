@@ -13,6 +13,7 @@ export interface ResendEmail {
   text: string;
   html?: string;
   reply_to?: string | string[];
+  attachments?: Array<{ path: string; filename: string }>;
 }
 
 export async function sendResendEmail(email: ResendEmail) {
