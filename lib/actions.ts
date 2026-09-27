@@ -1,4 +1,3 @@
-import { cacheLife } from "next/cache";
 import { fetchFinchData, type DailySummary } from "@/lib/finch";
 import {
   fetchNightscoutData,
@@ -15,8 +14,6 @@ import {
 export async function getFinchData(
   dateKey: string = new Date().toISOString().slice(0, 10),
 ): Promise<DailySummary[]> {
-  "use cache";
-  cacheLife({ revalidate: 64800, stale: 0 });
   return fetchFinchData();
 }
 
@@ -25,8 +22,6 @@ export async function getFinchData(
 export async function getNightscoutData(
   hours = 48,
 ): Promise<NightscoutReading[]> {
-  "use cache";
-  cacheLife({ revalidate: 300, stale: 0 });
   return fetchNightscoutData(hours);
 }
 
