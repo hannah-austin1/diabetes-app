@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 export function verifyResendWebhook(payload: string, headers: Headers) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;
   if (!secret) throw new Error("Missing RESEND_WEBHOOK_SECRET.");
@@ -26,4 +28,3 @@ export function verifyResendWebhook(payload: string, headers: Headers) {
     );
   });
 }
-
