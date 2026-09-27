@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  forwardReceivedResendEmail,
-  verifyResendWebhook,
-} from "@/lib/resend-actions";
+import { forwardReceivedResendEmail } from "@/lib/resend-actions";
+import { verifyResendWebhook } from "@/lib/resend-webhook";
 
 export async function POST(request: Request) {
   const payload = await request.text();
