@@ -4,12 +4,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   headers: async () => [
     {
-      // Finch-only pages: cache for 1 day at the CDN edge
+      // Health/Finch data is personal health information: never publicly CDN-cache it.
       source: "/(finch|health)",
       headers: [
         {
           key: "CDN-Cache-Control",
-          value: "public, s-maxage=86400, stale-while-revalidate=3600",
+          value: "private, no-store",
         },
       ],
     },
