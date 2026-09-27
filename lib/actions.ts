@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { fetchFinchData, type DailySummary } from "@/lib/finch";
 import {
   fetchNightscoutData,
@@ -6,19 +7,18 @@ import {
   type NightscoutTreatment,
 } from "@/lib/nightscout";
 
-// ── Finch (cached remotely for 1 day — shared across all Vercel instances) ───
-// The `dateKey` argument is today's date in YYYY-MM-DD format. Because "use cache"
-// uses function arguments as the cache key, a new cache entry is created each
-// calendar day — yesterday's stale entry is simply never hit again.
-
+// Finch + Apple Health: cache the Firebase request for one day.
+// The dateKey makes the cache key change each calendar day.
 export async function getFinchData(
   dateKey: string = new Date().toISOString().slice(0, 10),
 ): Promise<DailySummary[]> {
+  "use cache: remote";
+  cacheLife({ revalidate: 86400, expire: 86400, stale: 0 });
+  void dateKey;
   return fetchFinchData();
 }
 
-// ── Nightscout (cached remotely for 5 minutes) ──────────────────────────────
-
+// Nightscout: deliberately uncached because glucose data needs to stay live.
 export async function getNightscoutData(
   hours = 48,
 ): Promise<NightscoutReading[]> {
@@ -28,7 +28,5 @@ export async function getNightscoutData(
 export async function getNightscoutTreatments(
   hours = 48,
 ): Promise<NightscoutTreatment[]> {
-  "use cache";
-  cacheLife({ revalidate: 300, stale: 0 });
   return fetchTreatments(hours);
 }
