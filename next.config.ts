@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   headers: async () => [
     {
-      // Health/Finch data is personal health information: never publicly CDN-cache it.
+      // Health/FInch page responses must not be publicly CDN cached.
       source: "/(finch|health)",
       headers: [
         {
@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      // Nightscout-driven pages: no CDN cache — freshness handled by "use cache" in actions.ts
-      source: "/(|diabetes)",
+      // Nightscout responses are always fetched fresh in lib/nightscout.ts.
+      source: "/diabetes",
       headers: [
         {
           key: "CDN-Cache-Control",
